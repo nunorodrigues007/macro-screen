@@ -831,22 +831,30 @@ async function fetchPEData() {
     const batch = etfs.slice(i, i + batchSize);
     const symbols = batch.join(',');
     try {
-      const url = `https://financialmodelingprep.com/stable/quote?symbol=${symbols}&apikey=${fmpKey}`;
+      const url = `https://financialmodelingprep.com/api/v3/quote/${symbols}?apikey=${fmpKey}`;
       const res = await fetch(url);
-      const json = await res.json();
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); } catch(e) {
+        console.error('FMP parse error for batch:', symbols, text.slice(0,100));
+        continue;
+      }
       if (Array.isArray(json)) {
         json.forEach(item => {
           const row = data.find(d => d.etf === item.symbol);
-          if (row && item.pe !== null && item.pe !== undefined) {
-            row.pe = item.pe;
-            row.peSrc = 'FMP';
+          if (row) {
+            const pe = item.pe ?? item.priceEarningsRatio ?? null;
+            if (pe !== null && pe !== undefined && !isNaN(pe) && pe > 0) {
+              row.pe = pe;
+              row.peSrc = 'FMP';
+            }
           }
         });
       }
     } catch (e) {
       console.error('FMP fetch error:', e);
     }
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
   }
 }
 
