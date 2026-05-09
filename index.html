@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Macro Equity Screen</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface2: #f0ede6;
+    --border: #e2ddd4;
+    --text: #1a1917;
+    --text2: #6b6760;
+    --text3: #9e9b96;
+    --accent: #3d6b4f;
+
+    --q1-bg: #fef3f0; --q1-border: #f5c4b3; --q1-text: #993c1d; --q1-badge: #D85A30;
+    --q2-bg: #fef9ec; --q2-border: #fac775; --q2-text: #854f0b; --q2-badge: #BA7517;
+    --q3-bg: #f0f8e8; --q3-border: #c0dd97; --q3-text: #3b6d11; --q3-badge: #639922;
+    --q4-bg: #e6f4ee; --q4-border: #9fe1cb; --q4-text: #0f6e56; --q4-badge: #1D9E75;
+    --na-bg: #f4f3f0; --na-border: #d3d1c7; --na-text: #5f5e5a; --na-badge: #888780;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .logo-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .logo-sub {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .last-update {
+    font-size: 0.75rem;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .btn-refresh {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-refresh:hover { background: var(--surface2); color: var(--text); }
+  .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-refresh svg { width: 14px; height: 14px; }
+  .btn-refresh.loading svg { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+  .setup-banner {
+    background: #fff8ec;
+    border: 1px solid #fac775;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .setup-banner.hidden { display: none; }
+
+  .setup-banner svg { width: 18px; height: 18px; color: #BA7517; flex-shrink: 0; margin-top: 1px; }
+
+  .setup-banner-text { font-size: 0.82rem; color: #854f0b; line-height: 1.5; }
+
+  .setup-banner-text strong { font-weight: 600; }
+
+  .api-setup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .api-input {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #fac775;
+    background: #fff;
+    color: var(--text);
+    width: 280px;
+  }
+
+  .api-input:focus { outline: none; border-color: #BA7517; }
+
+  .btn-save {
+    padding: 0.35rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid #BA7517;
+    background: #BA7517;
+    color: #fff;
+    font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+
+  .summary-label {
+    font-size: 0.7rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 4px;
+  }
+
+  .summary-value {
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .summary-sub {
+    font-size: 0.72rem;
+    color: var(--text3);
+    margin-top: 3px;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text2);
+  }
+
+  select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  select:focus { outline: none; border-color: var(--accent); }
+
+  .hulbert-legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    color: var(--text2);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  thead {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.72rem;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+
+  th:hover { color: var(--text); }
+
+  th .sort-icon { margin-left: 4px; opacity: 0.4; }
+  th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+
+  td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: var(--bg); }
+
+  .rank-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text3);
+    font-weight: 500;
+    width: 28px;
+    text-align: right;
+  }
+
+  .country-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .country-name {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .country-region {
+    font-size: 0.7rem;
+    color: var(--text3);
+  }
+
+  .etf-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  .num-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    text-align: right;
+  }
+
+  .num-cell.loading { color: var(--text3); }
+
+  .score-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .quartile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .q1 { background: var(--q1-bg); border-color: var(--q1-border); color: var(--q1-text); }
+  .q2 { background: var(--q2-bg); border-color: var(--q2-border); color: var(--q2-text); }
+  .q3 { background: var(--q3-bg); border-color: var(--q3-border); color: var(--q3-text); }
+  .q4 { background: var(--q4-bg); border-color: var(--q4-border); color: var(--q4-text); }
+  .qna { background: var(--na-bg); border-color: var(--na-border); color: var(--na-text); }
+
+  .return-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .return-q1 { color: var(--q1-badge); }
+  .return-q2 { color: var(--q2-badge); }
+  .return-q3 { color: var(--q3-badge); }
+  .return-q4 { color: var(--q4-badge); }
+  .return-na { color: var(--na-text); }
+
+  .data-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.65rem;
+    color: var(--text3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .source-live { border-color: #c0dd97; color: #3b6d11; background: #f0f8e8; }
+  .source-wb { border-color: #b5d4f4; color: #185fa5; background: #e6f1fb; }
+  .source-na { border-color: var(--border); color: var(--text3); }
+
+  .methodology {
+    margin-top: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .methodology h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .meth-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .meth-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meth-label {
+    font-size: 0.7rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .meth-value {
+    font-size: 0.82rem;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  .quartile-table {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .quartile-table table {
+    font-size: 0.78rem;
+  }
+
+  .quartile-table thead { background: var(--surface2); }
+  .quartile-table th { padding: 0.5rem 0.85rem; font-size: 0.68rem; }
+  .quartile-table td { padding: 0.55rem 0.85rem; }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.72rem;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+
+  .loading-overlay {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text3);
+    font-size: 0.85rem;
+  }
+
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.4s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+
+  .error-row td {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text3);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 900px) {
+    main { padding: 1rem; }
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+    header { padding: 1rem; }
+    td, th { padding: 0.6rem 0.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-title">Global Macro Equity Screen</span>
+    <span class="logo-sub">Hulbert Composite Score · Country ETF Ranking</span>
+  </div>
+  <div class="header-right">
+    <span class="last-update" id="last-update">Not yet loaded</span>
+    <button class="btn-refresh" id="btn-refresh" onclick="loadAllData()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Refresh
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <div class="setup-banner" id="setup-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <div class="setup-banner-text">
+      <strong>FMP API Key required</strong> for P/E ratio data. Get a free key at
+      <a href="https://financialmodelingprep.com" target="_blank" style="color:inherit;">financialmodelingprep.com</a>
+      — 250 free requests/day included.<br>
+      Inflation &amp; unemployment data loads automatically from the World Bank (no key needed).
+      <div class="api-setup">
+        <input class="api-input" type="password" id="fmp-key-input" placeholder="Paste your FMP API key here…" autocomplete="off">
+        <button class="btn-save" onclick="saveFmpKey()">Save &amp; Load</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="summary-card">
+      <div class="summary-label">Countries tracked</div>
+      <div class="summary-value" id="s-total">—</div>
+      <div class="summary-sub">across all regions</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Best quartile (Q4)</div>
+      <div class="summary-value" style="color: var(--q4-badge)" id="s-q4">—</div>
+      <div class="summary-sub">score below 23.5 · ~16% hist. return</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Opportunity zone (Q3)</div>
+      <div class="summary-value" style="color: var(--q3-badge)" id="s-q3">—</div>
+      <div class="summary-sub">score 23.5–26.5 · ~13% hist. return</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Avoid zone (Q1)</div>
+      <div class="summary-value" style="color: var(--q1-badge)" id="s-q1">—</div>
+      <div class="summary-sub">score above 30 · ~2% hist. return</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="filter-group">
+      <label>Region</label>
+      <select id="filter-region" onchange="renderTable()">
+        <option value="all">All regions</option>
+        <option value="North America">North America</option>
+        <option value="Core Europe">Core Europe</option>
+        <option value="Peripheral Europe">Peripheral Europe</option>
+        <option value="Emerging Europe">Emerging Europe</option>
+        <option value="Developed Asia">Developed Asia</option>
+        <option value="Emerging Asia">Emerging Asia</option>
+        <option value="Latin America">Latin America</option>
+        <option value="Middle East">Middle East</option>
+        <option value="Africa">Africa</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Quartile</label>
+      <select id="filter-quartile" onchange="renderTable()">
+        <option value="all">All quartiles</option>
+        <option value="Q4">Q4 — Best (&lt;23.5)</option>
+        <option value="Q3">Q3 — Good (23.5–26.5)</option>
+        <option value="Q2">Q2 — Neutral (26.5–30)</option>
+        <option value="Q1">Q1 — Avoid (&gt;30)</option>
+      </select>
+    </div>
+    <div class="hulbert-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--q4-badge)"></div> Q4 Best &lt;23.5</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--q3-badge)"></div> Q3 Good 23.5–26.5</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--q2-badge)"></div> Q2 Neutral 26.5–30</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--q1-badge)"></div> Q1 Avoid &gt;30</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th onclick="sortBy('country')">Country <span class="sort-icon">↕</span></th>
+          <th>ETF</th>
+          <th onclick="sortBy('inflation')" style="text-align:right">CPI % <span class="sort-icon">↕</span></th>
+          <th onclick="sortBy('unemployment')" style="text-align:right">Unemp % <span class="sort-icon">↕</span></th>
+          <th onclick="sortBy('pe')" style="text-align:right">P/E <span class="sort-icon">↕</span></th>
+          <th onclick="sortBy('score')" class="sorted" style="text-align:right">Score <span class="sort-icon">↑</span></th>
+          <th>Quartile</th>
+          <th style="text-align:right">Hist. Return</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr>
+          <td colspan="10">
+            <div class="loading-overlay">
+              <span class="loading-dots">Loading data</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="methodology">
+    <h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3)">
+        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      Methodology — Hulbert Composite Score
+    </h3>
+    <div class="meth-grid">
+      <div class="meth-item">
+        <span class="meth-label">Formula</span>
+        <span class="meth-value">Score = CPI YoY (%) + Unemployment (%) + P/E Ratio</span>
+      </div>
+      <div class="meth-item">
+        <span class="meth-label">CPI &amp; Unemployment</span>
+        <span class="meth-value">World Bank API · most recent available data · updated monthly</span>
+      </div>
+      <div class="meth-item">
+        <span class="meth-label">P/E Ratio</span>
+        <span class="meth-value">Financial Modeling Prep (FMP) · ETF trailing P/E · updated daily</span>
+      </div>
+      <div class="meth-item">
+        <span class="meth-label">Ranking logic</span>
+        <span class="meth-value">Lower score = better opportunity. Countries with missing data appear last.</span>
+      </div>
+    </div>
+    <div class="quartile-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Quartile</th>
+            <th>Score range</th>
+            <th>Historical annualised return (since 1929)</th>
+            <th>Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="quartile-badge q4">Q4 — Best</span></td>
+            <td class="num-cell">Below 23.5</td>
+            <td class="return-cell return-q4">~16%</td>
+            <td>Strong opportunity</td>
+          </tr>
+          <tr>
+            <td><span class="quartile-badge q3">Q3 — Good</span></td>
+            <td class="num-cell">23.5 – 26.5</td>
+            <td class="return-cell return-q3">~13%</td>
+            <td>Positive setup</td>
+          </tr>
+          <tr>
+            <td><span class="quartile-badge q2">Q2 — Neutral</span></td>
+            <td class="num-cell">26.5 – 30.0</td>
+            <td class="return-cell return-q2">~9%</td>
+            <td>Neutral / watch</td>
+          </tr>
+          <tr>
+            <td><span class="quartile-badge q1">Q1 — Avoid</span></td>
+            <td class="num-cell">Above 30.0</td>
+            <td class="return-cell return-q1">~2%</td>
+            <td>Unfavourable</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.72rem; color:var(--text3); margin-top:0.75rem; line-height:1.5;">
+      Source: Vincent Deluard / Ned Davis Research. Originally applied to S&amp;P 500; adapted here for country ETFs as a macro screening tool.
+      This screen does not constitute investment advice. For informational purposes only.
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  Global Macro Equity Screen · Data: World Bank, Financial Modeling Prep, Yahoo Finance<br>
+  Hulbert Composite Score methodology: Deluard / Ned Davis Research · Not investment advice
+</footer>
+
+<script>
+const COUNTRIES = [
+  { country: 'United States', region: 'North America', etf: 'SPY', wbCode: 'US' },
+  { country: 'Canada', region: 'North America', etf: 'EWC', wbCode: 'CA' },
+  { country: 'Germany', region: 'Core Europe', etf: 'EWG', wbCode: 'DE' },
+  { country: 'France', region: 'Core Europe', etf: 'EWQ', wbCode: 'FR' },
+  { country: 'United Kingdom', region: 'Core Europe', etf: 'EWU', wbCode: 'GB' },
+  { country: 'Switzerland', region: 'Core Europe', etf: 'EWL', wbCode: 'CH' },
+  { country: 'Netherlands', region: 'Core Europe', etf: 'EWN', wbCode: 'NL' },
+  { country: 'Austria', region: 'Core Europe', etf: 'EWO', wbCode: 'AT' },
+  { country: 'Italy', region: 'Peripheral Europe', etf: 'EWI', wbCode: 'IT' },
+  { country: 'Spain', region: 'Peripheral Europe', etf: 'EWP', wbCode: 'ES' },
+  { country: 'Greece', region: 'Peripheral Europe', etf: 'GREK', wbCode: 'GR' },
+  { country: 'Ireland', region: 'Peripheral Europe', etf: 'EIRL', wbCode: 'IE' },
+  { country: 'Poland', region: 'Emerging Europe', etf: 'EPOL', wbCode: 'PL' },
+  { country: 'Czech Republic', region: 'Emerging Europe', etf: 'EWCZ', wbCode: 'CZ' },
+  { country: 'Turkey', region: 'Emerging Europe', etf: 'TUR', wbCode: 'TR' },
+  { country: 'Japan', region: 'Developed Asia', etf: 'EWJ', wbCode: 'JP' },
+  { country: 'Australia', region: 'Developed Asia', etf: 'EWA', wbCode: 'AU' },
+  { country: 'New Zealand', region: 'Developed Asia', etf: 'ENZL', wbCode: 'NZ' },
+  { country: 'Singapore', region: 'Developed Asia', etf: 'EWS', wbCode: 'SG' },
+  { country: 'Hong Kong', region: 'Developed Asia', etf: 'EWH', wbCode: 'HK' },
+  { country: 'China', region: 'Emerging Asia', etf: 'MCHI', wbCode: 'CN' },
+  { country: 'South Korea', region: 'Emerging Asia', etf: 'EWY', wbCode: 'KR' },
+  { country: 'Taiwan', region: 'Emerging Asia', etf: 'EWT', wbCode: 'TW' },
+  { country: 'India', region: 'Emerging Asia', etf: 'INDA', wbCode: 'IN' },
+  { country: 'Indonesia', region: 'Emerging Asia', etf: 'EIDO', wbCode: 'ID' },
+  { country: 'Malaysia', region: 'Emerging Asia', etf: 'EWM', wbCode: 'MY' },
+  { country: 'Thailand', region: 'Emerging Asia', etf: 'THD', wbCode: 'TH' },
+  { country: 'Philippines', region: 'Emerging Asia', etf: 'EPHE', wbCode: 'PH' },
+  { country: 'Vietnam', region: 'Emerging Asia', etf: 'VNM', wbCode: 'VN' },
+  { country: 'Pakistan', region: 'Emerging Asia', etf: 'PAK', wbCode: 'PK' },
+  { country: 'Brazil', region: 'Latin America', etf: 'EWZ', wbCode: 'BR' },
+  { country: 'Mexico', region: 'Latin America', etf: 'EWW', wbCode: 'MX' },
+  { country: 'Chile', region: 'Latin America', etf: 'ECH', wbCode: 'CL' },
+  { country: 'Colombia', region: 'Latin America', etf: 'GXG', wbCode: 'CO' },
+  { country: 'Peru', region: 'Latin America', etf: 'EPU', wbCode: 'PE' },
+  { country: 'Argentina', region: 'Latin America', etf: 'ARGT', wbCode: 'AR' },
+  { country: 'Israel', region: 'Middle East', etf: 'EIS', wbCode: 'IL' },
+  { country: 'Saudi Arabia', region: 'Middle East', etf: 'KSA', wbCode: 'SA' },
+  { country: 'UAE', region: 'Middle East', etf: 'UAE', wbCode: 'AE' },
+  { country: 'Qatar', region: 'Middle East', etf: 'QAT', wbCode: 'QA' },
+  { country: 'Kuwait', region: 'Middle East', etf: 'KWT', wbCode: 'KW' },
+  { country: 'South Africa', region: 'Africa', etf: 'EZA', wbCode: 'ZA' },
+  { country: 'Egypt', region: 'Africa', etf: 'EGPT', wbCode: 'EG' },
+];
+
+const QUARTILES = [
+  { label: 'Q1 — Avoid', cls: 'q1', min: 30, max: Infinity, ret: '~2%', retCls: 'return-q1' },
+  { label: 'Q2 — Neutral', cls: 'q2', min: 26.5, max: 30, ret: '~9%', retCls: 'return-q2' },
+  { label: 'Q3 — Good', cls: 'q3', min: 23.5, max: 26.5, ret: '~13%', retCls: 'return-q3' },
+  { label: 'Q4 — Best', cls: 'q4', min: -Infinity, max: 23.5, ret: '~16%', retCls: 'return-q4' },
+];
+
+function getQuartile(score) {
+  if (score === null || isNaN(score)) return null;
+  return QUARTILES.find(q => score > q.min || (score >= q.min && score < q.max) ||
+    (score < q.max && score >= q.min)) ||
+    QUARTILES.find(q => score >= q.min && score < q.max) ||
+    (score >= 30 ? QUARTILES[0] : score >= 26.5 ? QUARTILES[1] : score >= 23.5 ? QUARTILES[2] : QUARTILES[3]);
+}
+
+function classifyScore(score) {
+  if (score === null || score === undefined || isNaN(score)) return null;
+  if (score > 30) return QUARTILES[0];
+  if (score >= 26.5) return QUARTILES[1];
+  if (score >= 23.5) return QUARTILES[2];
+  return QUARTILES[3];
+}
+
+let data = COUNTRIES.map(c => ({
+  ...c, inflation: null, unemployment: null, pe: null, score: null,
+  inflationSrc: null, unemploymentSrc: null, peSrc: null
+}));
+
+let sortKey = 'score';
+let sortDir = 1;
+let fmpKey = localStorage.getItem('fmp_key') || '';
+
+function saveFmpKey() {
+  const val = document.getElementById('fmp-key-input').value.trim();
+  if (!val) return;
+  fmpKey = val;
+  localStorage.setItem('fmp_key', val);
+  loadAllData();
+}
+
+function fmt(val, decimals = 1) {
+  if (val === null || val === undefined || isNaN(val)) return '—';
+  return Number(val).toFixed(decimals);
+}
+
+async function fetchWorldBankIndicator(indicator, countryCodes) {
+  const codes = countryCodes.join(';');
+  const url = `https://api.worldbank.org/v2/country/${codes}/indicator/${indicator}?format=json&mrv=1&per_page=100`;
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    const result = {};
+    if (json[1]) {
+      json[1].forEach(item => {
+        if (item.value !== null) {
+          result[item.countryiso3code] = item.value;
+        }
+      });
+    }
+    return result;
+  } catch (e) {
+    console.error('World Bank fetch error:', indicator, e);
+    return {};
+  }
+}
+
+const ISO3_MAP = {
+  'US':'USA','CA':'CAN','DE':'DEU','FR':'FRA','GB':'GBR','CH':'CHE','NL':'NLD','AT':'AUT',
+  'IT':'ITA','ES':'ESP','GR':'GRC','IE':'IRL','PL':'POL','CZ':'CZE','TR':'TUR',
+  'JP':'JPN','AU':'AUS','NZ':'NZL','SG':'SGP','HK':'HKG','CN':'CHN','KR':'KOR',
+  'TW':'TWN','IN':'IND','ID':'IDN','MY':'MYS','TH':'THA','PH':'PHL','VN':'VNM','PK':'PAK',
+  'BR':'BRA','MX':'MEX','CL':'CHL','CO':'COL','PE':'PER','AR':'ARG',
+  'IL':'ISR','SA':'SAU','AE':'ARE','QA':'QAT','KW':'KWT','ZA':'ZAF','EG':'EGY'
+};
+
+async function fetchMacroData() {
+  const codes2 = COUNTRIES.map(c => c.wbCode);
+  const codes3 = codes2.map(c => ISO3_MAP[c] || c);
+
+  const [cpiData, unempData] = await Promise.all([
+    fetchWorldBankIndicator('FP.CPI.TOTL.ZG', codes2),
+    fetchWorldBankIndicator('SL.UEM.TOTL.ZS', codes2)
+  ]);
+
+  data.forEach(d => {
+    const iso3 = ISO3_MAP[d.wbCode] || d.wbCode;
+    const cpi = cpiData[iso3] ?? cpiData[d.wbCode] ?? null;
+    const unemp = unempData[iso3] ?? unempData[d.wbCode] ?? null;
+    d.inflation = cpi;
+    d.unemployment = unemp;
+    d.inflationSrc = cpi !== null ? 'WB' : null;
+    d.unemploymentSrc = unemp !== null ? 'WB' : null;
+  });
+}
+
+async function fetchPEData() {
+  if (!fmpKey) return;
+  const etfs = data.map(d => d.etf);
+  const batchSize = 10;
+  for (let i = 0; i < etfs.length; i += batchSize) {
+    const batch = etfs.slice(i, i + batchSize);
+    const symbols = batch.join(',');
+    try {
+      const url = `https://financialmodelingprep.com/stable/quote?symbol=${symbols}&apikey=${fmpKey}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (Array.isArray(json)) {
+        json.forEach(item => {
+          const row = data.find(d => d.etf === item.symbol);
+          if (row && item.pe !== null && item.pe !== undefined) {
+            row.pe = item.pe;
+            row.peSrc = 'FMP';
+          }
+        });
+      }
+    } catch (e) {
+      console.error('FMP fetch error:', e);
+    }
+    await new Promise(r => setTimeout(r, 200));
+  }
+}
+
+function computeScores() {
+  data.forEach(d => {
+    const vals = [d.inflation, d.unemployment, d.pe];
+    if (vals.every(v => v !== null && !isNaN(v))) {
+      d.score = d.inflation + d.unemployment + d.pe;
+    } else if (vals.some(v => v !== null && !isNaN(v))) {
+      const sum = vals.reduce((a, v) => v !== null && !isNaN(v) ? a + v : a, 0);
+      d.score = null;
+    } else {
+      d.score = null;
+    }
+  });
+}
+
+function updateSummary() {
+  document.getElementById('s-total').textContent = data.length;
+  const scored = data.filter(d => d.score !== null);
+  document.getElementById('s-q4').textContent = scored.filter(d => d.score < 23.5).length;
+  document.getElementById('s-q3').textContent = scored.filter(d => d.score >= 23.5 && d.score < 26.5).length;
+  document.getElementById('s-q1').textContent = scored.filter(d => d.score > 30).length;
+}
+
+function sortBy(key) {
+  if (sortKey === key) { sortDir *= -1; }
+  else { sortKey = key; sortDir = 1; }
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+  renderTable();
+}
+
+function renderTable() {
+  const regionFilter = document.getElementById('filter-region').value;
+  const quartileFilter = document.getElementById('filter-quartile').value;
+
+  let filtered = data.filter(d => {
+    if (regionFilter !== 'all' && d.region !== regionFilter) return false;
+    if (quartileFilter !== 'all') {
+      const q = classifyScore(d.score);
+      if (!q) return false;
+      const qLabel = q.label.split(' — ')[0];
+      if (qLabel !== quartileFilter) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    if (typeof av === 'string') return av.localeCompare(bv) * sortDir;
+    return (av - bv) * sortDir;
+  });
+
+  const tbody = document.getElementById('table-body');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr class="error-row"><td colspan="10">No countries match the current filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((d, i) => {
+    const q = d.score !== null ? classifyScore(d.score) : null;
+    const scoreDisplay = d.score !== null ? fmt(d.score, 1) : '—';
+    const scoreCls = q ? `score-cell` : 'score-cell';
+
+    const inflSrc = d.inflationSrc ? `<span class="data-source source-${d.inflationSrc === 'WB' ? 'wb' : 'live'}">${d.inflationSrc}</span>` : '<span class="data-source source-na">—</span>';
+    const unempSrc = d.unemploymentSrc ? `<span class="data-source source-${d.unemploymentSrc === 'WB' ? 'wb' : 'live'}">${d.unemploymentSrc}</span>` : '<span class="data-source source-na">—</span>';
+    const peSrc = d.peSrc ? `<span class="data-source source-live">${d.peSrc}</span>` : '<span class="data-source source-na">—</span>';
+
+    const quartileBadge = q
+      ? `<span class="quartile-badge ${q.cls}">${q.label}</span>`
+      : `<span class="quartile-badge qna">N/A</span>`;
+
+    const returnCell = q
+      ? `<span class="return-cell ${q.retCls}">${q.ret}</span>`
+      : `<span class="return-cell return-na">—</span>`;
+
+    return `<tr>
+      <td class="rank-num">${i + 1}</td>
+      <td>
+        <div class="country-cell">
+          <span class="country-name">${d.country}</span>
+          <span class="country-region">${d.region}</span>
+        </div>
+      </td>
+      <td><span class="etf-badge">${d.etf}</span></td>
+      <td class="num-cell ${d.inflation === null ? 'loading' : ''}">${fmt(d.inflation)}</td>
+      <td class="num-cell ${d.unemployment === null ? 'loading' : ''}">${fmt(d.unemployment)}</td>
+      <td class="num-cell ${d.pe === null ? 'loading' : ''}">${fmt(d.pe, 1)}</td>
+      <td class="${scoreCls}" style="color:${q ? `var(--${q.cls.replace('q','q')}-badge)` : 'var(--text3)'}">${scoreDisplay}</td>
+      <td>${quartileBadge}</td>
+      <td style="text-align:right">${returnCell}</td>
+      <td>
+        <div style="display:flex;gap:3px;flex-wrap:wrap">
+          ${inflSrc}${unempSrc}${peSrc}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateSummary();
+}
+
+async function loadAllData() {
+  const btn = document.getElementById('btn-refresh');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  document.getElementById('table-body').innerHTML = `
+    <tr><td colspan="10">
+      <div class="loading-overlay"><span class="loading-dots">Fetching macro data</span></div>
+    </td></tr>`;
+
+  try {
+    await fetchMacroData();
+    renderTable();
+
+    if (fmpKey) {
+      document.getElementById('setup-banner').classList.add('hidden');
+      await fetchPEData();
+    } else {
+      document.getElementById('setup-banner').classList.remove('hidden');
+    }
+
+    computeScores();
+    renderTable();
+
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      'Updated ' + now.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const cache = { timestamp: Date.now(), data: data };
+    try { localStorage.setItem('macro_cache', JSON.stringify(cache)); } catch(e) {}
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('table-body').innerHTML =
+      '<tr class="error-row"><td colspan="10">Error loading data. Check your connection and try again.</td></tr>';
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+}
+
+function init() {
+  if (fmpKey) {
+    document.getElementById('setup-banner').classList.add('hidden');
+    document.getElementById('fmp-key-input').value = fmpKey;
+  }
+
+  const cached = localStorage.getItem('macro_cache');
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      const age = Date.now() - parsed.timestamp;
+      if (age < 6 * 60 * 60 * 1000) {
+        data = parsed.data;
+        computeScores();
+        renderTable();
+        const d = new Date(parsed.timestamp);
+        document.getElementById('last-update').textContent =
+          'Cached ' + d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return;
+      }
+    } catch(e) {}
+  }
+
+  loadAllData();
+}
+
+init();
+</script>
+</body>
+</html>
