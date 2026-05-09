@@ -823,7 +823,18 @@ async function fetchMacroData() {
   });
 }
 
-async function fetchPEForSymbol(symbol) {
+const ISHARES_IDS = {
+  'SPY':'239726','EWC':'239693','EWG':'239724','EWQ':'239741','EWU':'239737',
+  'EWL':'239728','EWN':'239730','EWO':'239732','EWI':'239727','EWP':'239734',
+  'GREK':'256101','EIRL':'244049','EPOL':'239735','EWCZ':'','TUR':'239744',
+  'EWJ':'239665','EWA':'239697','ENZL':'244048','EWS':'239736','EWH':'239726',
+  'MCHI':'239619','EWY':'239738','EWT':'239739','INDA':'244351','EIDO':'256109',
+  'EWM':'239729','THD':'239743','EPHE':'256110','VNM':'','PAK':'','EWZ':'239696',
+  'EWW':'239731','ECH':'239733','GXG':'','EPU':'','ARGT':'','EIS':'239725',
+  'KSA':'','UAE':'','QAT':'','KWT':'','EZA':'239740','EGPT':''
+};
+
+async function fetchPEForSymbol(symbol, ishId) {
   if (fmpKey) {
     try {
       const url = `https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${fmpKey}`;
@@ -837,13 +848,25 @@ async function fetchPEForSymbol(symbol) {
       }
     } catch(e) {}
   }
+  if (ishId) {
+    try {
+      const proxy = 'https://corsproxy.io/?url=';
+      const ishUrl = `https://www.ishares.com/us/products/${ishId}/1467271812596.ajax?tab=fund-characteristics&fileType=json`;
+      const res = await fetch(proxy + encodeURIComponent(ishUrl));
+      if (res.ok) {
+        const json = await res.json();
+        const peVal = json?.['Price/Earnings']?.value ?? json?.priceEarnings ?? null;
+        if (peVal !== null && !isNaN(Number(peVal)) && Number(peVal) > 0) return { pe: Number(peVal), src: 'iSh' };
+      }
+    } catch(e) {}
+  }
   try {
     const proxy = 'https://corsproxy.io/?url=';
-    const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+    const yUrl = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=summaryDetail`;
     const res = await fetch(proxy + encodeURIComponent(yUrl));
     if (res.ok) {
       const json = await res.json();
-      const pe = json?.chart?.result?.[0]?.meta?.trailingPE ?? null;
+      const pe = json?.quoteSummary?.result?.[0]?.summaryDetail?.trailingPE?.raw ?? null;
       if (pe !== null && !isNaN(pe) && pe > 0 && pe < 300) return { pe, src: 'YF' };
     }
   } catch(e) {}
@@ -853,14 +876,15 @@ async function fetchPEForSymbol(symbol) {
 async function fetchPEData() {
   for (let i = 0; i < data.length; i++) {
     const d = data[i];
-    const result = await fetchPEForSymbol(d.etf);
+    const ishId = ISHARES_IDS[d.etf] ?? null;
+    const result = await fetchPEForSymbol(d.etf, ishId);
     if (result) {
       d.pe = result.pe;
       d.peSrc = result.src;
       computeScores();
       renderTable();
     }
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise(r => setTimeout(r, 400));
   }
 }
 
