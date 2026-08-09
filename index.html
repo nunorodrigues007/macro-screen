@@ -645,7 +645,7 @@
       </div>
       <div class="meth-item">
         <span class="meth-label">P/E Ratio</span>
-        <span class="meth-value">Manual update in hulbert_data.json · date shown per metric</span>
+        <span class="meth-value">worldperatio.com (monthly, current) · auto-updated · manual fallback if scraping fails · date shown per metric</span>
       </div>
       <div class="meth-item">
         <span class="meth-label">Ranking logic</span>
@@ -805,7 +805,7 @@ async function fetchHulbertData() {
 
     d.pe               = entry.pe    ?? null;
     d.peDate           = entry.pe_date ?? null;
-    d.peSrc            = entry.pe    !== null && entry.pe !== undefined ? 'Manual' : null;
+    d.peSrc            = entry.pe_source ?? null;
   });
 }
 
@@ -837,14 +837,16 @@ function sortBy(key) {
 
 // Devolve a classe CSS certa consoante a fonte do dado
 function sourceClass(src) {
-  if (src === 'OECD') return 'source-live';       // verde — mensal, corrente
-  if (src === 'WorldBank') return 'source-wb';     // azul — anual, com desfasamento
-  if (src === 'Manual') return 'source-live';      // verde — P/E actualizado à mão
+  if (src === 'OECD') return 'source-live';        // verde — mensal, corrente
+  if (src === 'worldperatio') return 'source-live'; // verde — mensal, corrente
+  if (src === 'WorldBank') return 'source-wb';      // azul — anual, com desfasamento
+  if (src === 'Manual') return 'source-wb';         // azul — pode estar desactualizado
   return 'source-na';
 }
 
 function sourceLabel(src) {
   if (src === 'WorldBank') return 'WB';
+  if (src === 'worldperatio') return 'wPER';
   if (!src) return '—';
   return src; // 'OECD' ou 'Manual'
 }
