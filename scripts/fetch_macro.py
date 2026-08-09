@@ -81,7 +81,7 @@ WORLDPERATIO_SLUGS = {
     "SPY": "united-states", "EWC": "canada", "EWG": "germany", "EWQ": "france",
     "EWU": "united-kingdom", "EWL": "switzerland", "EWN": "netherlands", "EWO": "austria",
     "EWI": "italy", "EWP": "spain", "GREK": "greece", "EIRL": "ireland",
-    "EPOL": "poland", "EWCZ": "czech-republic", "TUR": "turkey", "EWJ": "japan",
+    "EPOL": "poland", "EWCZ": "czechia", "TUR": "turkey", "EWJ": "japan",
     "EWA": "australia", "ENZL": "new-zealand", "EWS": "singapore", "EWH": "hong-kong",
     "MCHI": "china", "EWY": "south-korea", "EWT": "taiwan", "INDA": "india",
     "EIDO": "indonesia", "EWM": "malaysia", "THD": "thailand", "EPHE": "philippines",
@@ -247,34 +247,43 @@ def fetch_worldperatio_pe(slug, attempts=2):
 # Um único pedido para TODOS os países de uma vez (em vez de um pedido por país,
 # que era lento e podia demorar minutos com ~40 chamadas sequenciais).
 
-def fetch_wb_bulk(wb_codes, indicator, attempts=2):
-    """Devolve {wb_code: (valor, data)} para o indicador dado, num único pedido HTTP."""
-    codes = ";".join(wb_codes)
-    url = f"{WB_BASE}/{codes}/indicator/{indicator}?format=json&per_page=1000&mrnev=1"
-    last_err = None
-    for i in range(attempts):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": HEADERS["User-Agent"]})
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.load(resp)
-            result = {}
-            if len(data) < 2 or not data[1]:
-                return result
-            for entry in data[1]:
-                code = entry.get("country", {}).get("id") or entry.get("countryiso3code")
-                val = entry.get("value")
-                if val is None:
-                    continue
-                date_str = str(entry["date"])
-                if code not in result or date_str > result[code][1]:
-                    result[code] = (round(float(val), 2), date_str)
-            return result
-        except Exception as e:
-            last_err = e
-            if i < attempts - 1:
-                time.sleep(3)
-    print(f"  [World Bank {indicator}] falhou: {last_err}")
-    return {}
+def fetch_wb_bulk(wb_codes, indicator, attempts=2, chunk_size=12):
+    """Devolve {wb_code: (valor, data)} para o indicador dado.
+
+    Divide os países em lotes pequenos — um pedido só com os 43 países
+    de uma vez estava a demorar demasiado e a dar timeout no lado do
+    World Bank. Lotes de ~12 países respondem em poucos segundos.
+    """
+    result = {}
+    for start in range(0, len(wb_codes), chunk_size):
+        batch = wb_codes[start:start + chunk_size]
+        codes = ";".join(batch)
+        url = f"{WB_BASE}/{codes}/indicator/{indicator}?format=json&per_page=1000&mrnev=1"
+        last_err = None
+        for i in range(attempts):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": HEADERS["User-Agent"]})
+                with urllib.request.urlopen(req, timeout=25) as resp:
+                    data = json.load(resp)
+                if len(data) < 2 or not data[1]:
+                    break
+                for entry in data[1]:
+                    code = entry.get("country", {}).get("id") or entry.get("countryiso3code")
+                    val = entry.get("value")
+                    if val is None:
+                        continue
+                    date_str = str(entry["date"])
+                    if code not in result or date_str > result[code][1]:
+                        result[code] = (round(float(val), 2), date_str)
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                if i < attempts - 1:
+                    time.sleep(2)
+        if last_err:
+            print(f"  [World Bank {indicator} lote {batch}] falhou: {last_err}")
+    return result
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
