@@ -1,21 +1,19 @@
 name: Update Macro Data
 
 on:
-  # Run on the 5th of every month at 06:00 UTC
   schedule:
-    - cron: '0 6 5 * *'
-  # Allow manual trigger from GitHub Actions tab
-  workflow_dispatch:
+    # Dia 5 de cada mês, às 08:00 UTC
+    - cron: '0 8 5 * *'
+  workflow_dispatch: {}  # permite correr manualmente a partir do separador Actions
+
+permissions:
+  contents: write
 
 jobs:
-  update-data:
+  update:
     runs-on: ubuntu-latest
-    
-    permissions:
-      contents: write
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -23,29 +21,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Fetch macro data
+      - name: Run fetch_macro.py
         run: python scripts/fetch_macro.py
 
-      - name: Check for changes
-        id: changes
+      - name: Commit updated hulbert_data.json
         run: |
-          if git diff --quiet hulbert_data.json; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push updated data
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add hulbert_data.json
-          git commit -m "Auto-update macro data — $(date '+%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "Auto-update macro data ($(date +%Y-%m-%d))"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: No changes detected
-        if: steps.changes.outputs.changed == 'false'
-        run: echo "hulbert_data.json is already up to date — no commit needed."
