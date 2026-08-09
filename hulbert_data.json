@@ -3,7 +3,7 @@
   "_sources": {
     "cpi": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
     "unemployment": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
-    "pe": "Manual — preservado do ficheiro anterior",
+    "pe": "worldperatio.com (mensal, corrente) — auto-actualizado; reserva manual se falhar",
     "note": "date shown per metric"
   },
   "SPY": {
@@ -15,8 +15,9 @@
     "unemp": 4.2,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 23.8,
-    "pe_date": "2026-05-10"
+    "pe": 27.28,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWC": {
     "country": "Canada",
@@ -27,8 +28,9 @@
     "unemp": 6.5,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 19.6,
-    "pe_date": "2026-05-10"
+    "pe": 20.49,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWG": {
     "country": "Germany",
@@ -39,8 +41,9 @@
     "unemp": 3.9,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 14.2,
-    "pe_date": "2026-05-10"
+    "pe": 17.9,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWQ": {
     "country": "France",
@@ -51,8 +54,9 @@
     "unemp": 8.2,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 19.6,
-    "pe_date": "2026-05-10"
+    "pe": 18.35,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWU": {
     "country": "United Kingdom",
@@ -63,8 +67,9 @@
     "unemp": 4.9,
     "unemp_date": "2026-04",
     "unemp_source": "OECD",
-    "pe": 19.6,
-    "pe_date": "2026-05-10"
+    "pe": 15.72,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWL": {
     "country": "Switzerland",
@@ -75,8 +80,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 23.3,
-    "pe_date": "2026-05-10"
+    "pe": 25.92,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWN": {
     "country": "Netherlands",
@@ -87,8 +93,9 @@
     "unemp": 3.8,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 21.8,
-    "pe_date": "2026-05-10"
+    "pe": 20.71,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWO": {
     "country": "Austria",
@@ -99,8 +106,9 @@
     "unemp": 5.7,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 11.8,
-    "pe_date": "2026-05-10"
+    "pe": 13.23,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWI": {
     "country": "Italy",
@@ -111,8 +119,9 @@
     "unemp": 5.7,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 21.2,
-    "pe_date": "2026-05-10"
+    "pe": 15.3,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWP": {
     "country": "Spain",
@@ -123,8 +132,9 @@
     "unemp": 10.1,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 14.7,
-    "pe_date": "2026-05-10"
+    "pe": 16.04,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "GREK": {
     "country": "Greece",
@@ -135,8 +145,9 @@
     "unemp": 8.0,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 8.9,
-    "pe_date": "2026-05-10"
+    "pe": 11.23,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EIRL": {
     "country": "Ireland",
@@ -147,8 +158,9 @@
     "unemp": 5.0,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 17.4,
-    "pe_date": "2026-05-10"
+    "pe": 17.32,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EPOL": {
     "country": "Poland",
@@ -159,8 +171,9 @@
     "unemp": 3.1,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 9.3,
-    "pe_date": "2026-05-10"
+    "pe": 14.67,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWCZ": {
     "country": "Czech Republic",
@@ -172,7 +185,8 @@
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
     "pe": 10.1,
-    "pe_date": "2026-05-10"
+    "pe_date": "2026-05-10",
+    "pe_source": "Manual"
   },
   "TUR": {
     "country": "Turkey",
@@ -183,8 +197,9 @@
     "unemp": 7.6,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 8.2,
-    "pe_date": "2026-05-10"
+    "pe": 14.7,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWJ": {
     "country": "Japan",
@@ -195,8 +210,9 @@
     "unemp": 2.5,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 14.5,
-    "pe_date": "2026-05-10"
+    "pe": 19.08,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWA": {
     "country": "Australia",
@@ -207,8 +223,9 @@
     "unemp": 4.43,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 20.4,
-    "pe_date": "2026-05-10"
+    "pe": 21.41,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "ENZL": {
     "country": "New Zealand",
@@ -219,8 +236,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 29.8,
-    "pe_date": "2026-05-10"
+    "pe": 26.82,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWS": {
     "country": "Singapore",
@@ -231,8 +249,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 12.4,
-    "pe_date": "2026-05-10"
+    "pe": 19.05,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWH": {
     "country": "Hong Kong",
@@ -243,8 +262,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 9.8,
-    "pe_date": "2026-05-10"
+    "pe": 17.86,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "MCHI": {
     "country": "China",
@@ -255,8 +275,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 11.2,
-    "pe_date": "2026-05-10"
+    "pe": 9.89,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWY": {
     "country": "South Korea",
@@ -267,8 +288,9 @@
     "unemp": 2.7,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 9.1,
-    "pe_date": "2026-05-10"
+    "pe": 15.86,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWT": {
     "country": "Taiwan",
@@ -279,8 +301,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 18.9,
-    "pe_date": "2026-05-10"
+    "pe": 28.06,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "INDA": {
     "country": "India",
@@ -291,8 +314,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 21.1,
-    "pe_date": "2026-05-10"
+    "pe": 22.87,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EIDO": {
     "country": "Indonesia",
@@ -303,8 +327,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 14.3,
-    "pe_date": "2026-05-10"
+    "pe": 9.76,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWM": {
     "country": "Malaysia",
@@ -315,8 +340,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 16.2,
-    "pe_date": "2026-05-10"
+    "pe": 13.49,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "THD": {
     "country": "Thailand",
@@ -327,8 +353,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 17.8,
-    "pe_date": "2026-05-10"
+    "pe": 14.43,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EPHE": {
     "country": "Philippines",
@@ -339,8 +366,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 13.4,
-    "pe_date": "2026-05-10"
+    "pe": 8.65,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "VNM": {
     "country": "Vietnam",
@@ -351,8 +379,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 11.4,
-    "pe_date": "2026-05-10"
+    "pe": 14.35,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "PAK": {
     "country": "Pakistan",
@@ -364,7 +393,8 @@
     "unemp_date": null,
     "unemp_source": null,
     "pe": 4.2,
-    "pe_date": "2026-05-10"
+    "pe_date": "2026-05-10",
+    "pe_source": "Manual"
   },
   "EWZ": {
     "country": "Brazil",
@@ -375,8 +405,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 7.8,
-    "pe_date": "2026-05-10"
+    "pe": 11.52,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EWW": {
     "country": "Mexico",
@@ -387,8 +418,9 @@
     "unemp": 2.84,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 13.2,
-    "pe_date": "2026-05-10"
+    "pe": 12.25,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "ECH": {
     "country": "Chile",
@@ -399,8 +431,9 @@
     "unemp": 9.28,
     "unemp_date": "2026-05",
     "unemp_source": "OECD",
-    "pe": 10.8,
-    "pe_date": "2026-05-10"
+    "pe": 12.38,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "GXG": {
     "country": "Colombia",
@@ -411,8 +444,9 @@
     "unemp": 8.3,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 12.8,
-    "pe_date": "2026-05-10"
+    "pe": 11.01,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EPU": {
     "country": "Peru",
@@ -423,8 +457,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 9.4,
-    "pe_date": "2026-05-10"
+    "pe": 14.04,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "ARGT": {
     "country": "Argentina",
@@ -435,8 +470,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 7.1,
-    "pe_date": "2026-05-10"
+    "pe": 15.83,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EIS": {
     "country": "Israel",
@@ -447,8 +483,9 @@
     "unemp": 2.86,
     "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 14.3,
-    "pe_date": "2026-05-10"
+    "pe": 17.34,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "KSA": {
     "country": "Saudi Arabia",
@@ -460,7 +497,8 @@
     "unemp_date": null,
     "unemp_source": null,
     "pe": 17.8,
-    "pe_date": "2026-05-10"
+    "pe_date": "2026-05-10",
+    "pe_source": "Manual"
   },
   "UAE": {
     "country": "UAE",
@@ -472,7 +510,8 @@
     "unemp_date": null,
     "unemp_source": null,
     "pe": 9.2,
-    "pe_date": "2026-05-10"
+    "pe_date": "2026-05-10",
+    "pe_source": "Manual"
   },
   "QAT": {
     "country": "Qatar",
@@ -483,8 +522,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 11.6,
-    "pe_date": "2026-05-10"
+    "pe": 11.07,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "KWT": {
     "country": "Kuwait",
@@ -496,7 +536,8 @@
     "unemp_date": null,
     "unemp_source": null,
     "pe": 14.1,
-    "pe_date": "2026-05-10"
+    "pe_date": "2026-05-10",
+    "pe_source": "Manual"
   },
   "EZA": {
     "country": "South Africa",
@@ -507,8 +548,9 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 10.3,
-    "pe_date": "2026-05-10"
+    "pe": 9.05,
+    "pe_date": "2026-08-07",
+    "pe_source": "worldperatio"
   },
   "EGPT": {
     "country": "Egypt",
@@ -520,6 +562,7 @@
     "unemp_date": null,
     "unemp_source": null,
     "pe": 5.9,
-    "pe_date": "2026-05-10"
+    "pe_date": "2026-05-10",
+    "pe_source": "Manual"
   }
 }
