@@ -84,7 +84,7 @@ REPO_JSON_PATH = os.environ.get("HULBERT_JSON_PATH", "hulbert_data.json")
 
 def fetch_oecd_csv(url):
     req = urllib.request.Request(url, headers={"Accept": "application/vnd.sdmx.data+csv"})
-    with urllib.request.urlopen(req, timeout=60) as resp:
+    with urllib.request.urlopen(req, timeout=35) as resp:
         text = resp.read().decode("utf-8")
     return list(csv.DictReader(io.StringIO(text)))
 
@@ -162,21 +162,35 @@ def _most_recent(rows, area_col="REF_AREA", time_col="TIME_PERIOD", value_col="O
 
 
 # ── World Bank (reserva) ──────────────────────────────────────────────────────
+# Um único pedido para TODOS os países de uma vez (em vez de um pedido por país,
+# que era lento e podia demorar minutos com ~40 chamadas sequenciais).
 
-def fetch_wb_indicator(wb_code, indicator):
-    url = f"{WB_BASE}/{wb_code}/indicator/{indicator}?format=json&per_page=20&mrnev=1"
+def fetch_wb_bulk(wb_codes, indicator):
+    """Devolve {wb_code: (valor, data)} para o indicador dado, num único pedido HTTP."""
+    codes = ";".join(wb_codes)
+    url = f"{WB_BASE}/{codes}/indicator/{indicator}?format=json&per_page=1000&mrnev=1"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             data = json.load(resp)
+        result = {}
         if len(data) < 2 or not data[1]:
-            return None
+            return result
         for entry in data[1]:
-            if entry.get("value") is not None:
-                return (round(float(entry["value"]), 2), str(entry["date"]))
+            # usar o código ISO alpha-2 (country.id) para bater certo com o "wb" da lista COUNTRIES
+            code = entry.get("country", {}).get("id") or entry.get("countryiso3code")
+            val = entry.get("value")
+            if val is None:
+                continue
+            # mrnev já devolve o valor mais recente por país; se vier mais que
+            # uma entrada por país, mantemos a de data mais recente
+            date_str = str(entry["date"])
+            if code not in result or date_str > result[code][1]:
+                result[code] = (round(float(val), 2), date_str)
+        return result
     except Exception as e:
-        print(f"  [World Bank {indicator} {wb_code}] falhou: {e}")
-    return None
+        print(f"  [World Bank {indicator}] falhou: {e}")
+        return {}
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -204,6 +218,15 @@ def main():
     oecd_unemp = get_oecd_unemployment()
     print(f"  {len(oecd_unemp)} países com desemprego da OECD\n")
 
+    all_wb_codes = [c["wb"] for c in COUNTRIES]
+    print("A obter CPI do World Bank (todos os países, 1 pedido)...")
+    wb_cpi = fetch_wb_bulk(all_wb_codes, "FP.CPI.TOTL.ZG")
+    print(f"  {len(wb_cpi)} países com CPI do World Bank\n")
+
+    print("A obter Desemprego do World Bank (todos os países, 1 pedido)...")
+    wb_unemp = fetch_wb_bulk(all_wb_codes, "SL.UEM.TOTL.ZS")
+    print(f"  {len(wb_unemp)} países com desemprego do World Bank\n")
+
     output = {
         "_updated": TODAY,
         "_sources": {
@@ -223,11 +246,9 @@ def main():
         if oecd_code and oecd_code in oecd_cpi:
             cpi_val, cpi_date = oecd_cpi[oecd_code]
             cpi_src = "OECD"
-        if cpi_val is None:
-            wb_result = fetch_wb_indicator(wb_code, "FP.CPI.TOTL.ZG")
-            if wb_result:
-                cpi_val, cpi_date = wb_result
-                cpi_src = "WorldBank"
+        if cpi_val is None and wb_code in wb_cpi:
+            cpi_val, cpi_date = wb_cpi[wb_code]
+            cpi_src = "WorldBank"
         print(f"    CPI: {cpi_val} ({cpi_date}, {cpi_src})")
 
         # --- Unemployment ---
@@ -235,11 +256,9 @@ def main():
         if oecd_code and oecd_code in oecd_unemp:
             unemp_val, unemp_date = oecd_unemp[oecd_code]
             unemp_src = "OECD"
-        if unemp_val is None:
-            wb_result = fetch_wb_indicator(wb_code, "SL.UEM.TOTL.ZS")
-            if wb_result:
-                unemp_val, unemp_date = wb_result
-                unemp_src = "WorldBank"
+        if unemp_val is None and wb_code in wb_unemp:
+            unemp_val, unemp_date = wb_unemp[wb_code]
+            unemp_src = "WorldBank"
         print(f"    Unemployment: {unemp_val} ({unemp_date}, {unemp_src})")
 
         # --- P/E: preservar o que já existe, nunca sobrescrever ---
