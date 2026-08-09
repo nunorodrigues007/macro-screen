@@ -19,6 +19,7 @@ import json
 import csv
 import io
 import os
+import re
 import sys
 import urllib.request
 import urllib.error
@@ -73,6 +74,22 @@ COUNTRIES = [
     {"etf": "EZA",  "country": "South Africa",     "region": "Africa",         "wb": "ZA", "oecd": None},
     {"etf": "EGPT", "country": "Egypt",            "region": "Africa",         "wb": "EG", "oecd": None},
 ]
+
+# ── worldperatio.com — P/E automático ─────────────────────────────────────────
+# slug usado em worldperatio.com/area/{slug}/ — None = não coberto, mantém manual
+WORLDPERATIO_SLUGS = {
+    "SPY": "united-states", "EWC": "canada", "EWG": "germany", "EWQ": "france",
+    "EWU": "united-kingdom", "EWL": "switzerland", "EWN": "netherlands", "EWO": "austria",
+    "EWI": "italy", "EWP": "spain", "GREK": "greece", "EIRL": "ireland",
+    "EPOL": "poland", "EWCZ": "czech-republic", "TUR": "turkey", "EWJ": "japan",
+    "EWA": "australia", "ENZL": "new-zealand", "EWS": "singapore", "EWH": "hong-kong",
+    "MCHI": "china", "EWY": "south-korea", "EWT": "taiwan", "INDA": "india",
+    "EIDO": "indonesia", "EWM": "malaysia", "THD": "thailand", "EPHE": "philippines",
+    "VNM": "vietnam", "PAK": "pakistan", "EWZ": "brazil", "EWW": "mexico",
+    "ECH": "chile", "GXG": "colombia", "EPU": "peru", "ARGT": "argentina",
+    "EIS": "israel", "KSA": "saudi-arabia", "UAE": "united-arab-emirates",
+    "QAT": "qatar", "KWT": "kuwait", "EZA": "south-africa", "EGPT": "egypt",
+}
 
 TODAY = datetime.now().strftime("%Y-%m-%d")
 OECD_BASE = "https://sdmx.oecd.org/public/rest/data"
@@ -177,6 +194,53 @@ def _most_recent(rows, area_col="REF_AREA", time_col="TIME_PERIOD", value_col="O
             except ValueError:
                 continue
     return best
+# ── worldperatio.com — P/E automático (scraping leve) ─────────────────────────
+
+MESES_PT_EN = {
+    "January": "01", "February": "02", "March": "03", "April": "04",
+    "May": "05", "June": "06", "July": "07", "August": "08",
+    "September": "09", "October": "10", "November": "11", "December": "12",
+}
+
+
+def parse_worldperatio_date(date_text):
+    """Converte '07 August 2026' em '2026-08-07'."""
+    m = re.match(r"(\d{1,2})\s+(\w+)\s+(\d{4})", date_text.strip())
+    if not m:
+        return None
+    day, month_name, year = m.groups()
+    month = MESES_PT_EN.get(month_name)
+    if not month:
+        return None
+    return f"{year}-{month}-{int(day):02d}"
+
+
+def fetch_worldperatio_pe(slug, attempts=2):
+    """Faz scraping de worldperatio.com/area/{slug}/ e devolve (valor, data_iso)."""
+    url = f"https://worldperatio.com/area/{slug}/"
+    last_err = None
+    for i in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": HEADERS["User-Agent"]})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                html = resp.read().decode("utf-8", errors="ignore")
+            text = re.sub(r"<[^>]+>", " ", html)
+            text = re.sub(r"\s+", " ", text)
+            m = re.search(
+                r"is\s+([\d]+\.[\d]+)\s*,?\s*calculated on\s+(\d{1,2}\s+\w+\s+\d{4})",
+                text,
+            )
+            if not m:
+                return None
+            pe_val = round(float(m.group(1)), 2)
+            pe_date = parse_worldperatio_date(m.group(2))
+            return (pe_val, pe_date)
+        except Exception as e:
+            last_err = e
+            if i < attempts - 1:
+                time.sleep(2)
+    print(f"  [worldperatio {slug}] falhou: {last_err}")
+    return None
 
 
 # ── World Bank (reserva) ──────────────────────────────────────────────────────
@@ -252,7 +316,7 @@ def main():
         "_sources": {
             "cpi": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
             "unemployment": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
-            "pe": "Manual — preservado do ficheiro anterior",
+            "pe": "worldperatio.com (mensal, corrente) — auto-actualizado; reserva manual se falhar",
             "note": "date shown per metric",
         },
     }
@@ -281,10 +345,19 @@ def main():
             unemp_src = "WorldBank"
         print(f"    Unemployment: {unemp_val} ({unemp_date}, {unemp_src})")
 
-        # --- P/E: preservar o que já existe, nunca sobrescrever ---
+        # --- P/E: tenta worldperatio.com; se falhar, preserva o valor manual anterior ---
         prev = existing.get(etf, {})
         pe_val = prev.get("pe")
         pe_date = prev.get("pe_date")
+        pe_src = "Manual" if pe_val is not None else None
+
+        slug = WORLDPERATIO_SLUGS.get(etf)
+        if slug:
+            scraped = fetch_worldperatio_pe(slug)
+            if scraped and scraped[0] is not None:
+                pe_val, pe_date = scraped
+                pe_src = "worldperatio"
+        print(f"    P/E: {pe_val} ({pe_date}, {pe_src})")
 
         output[etf] = {
             "country": c["country"],
@@ -297,6 +370,7 @@ def main():
             "unemp_source": unemp_src,
             "pe": pe_val,
             "pe_date": pe_date,
+            "pe_source": pe_src,
         }
 
     with open(REPO_JSON_PATH, "w", encoding="utf-8") as f:
