@@ -392,6 +392,13 @@
     margin-top: 1px;
   }
 
+  .data-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-start;
+  }
+
   .num-cell {
     text-align: right;
     vertical-align: top;
@@ -634,11 +641,11 @@
       </div>
       <div class="meth-item">
         <span class="meth-label">CPI &amp; Unemployment</span>
-        <span class="meth-value">World Bank API · auto-updated on the 5th of each month via GitHub Actions · date shown per metric</span>
+        <span class="meth-value">OECD (monthly, current) for member countries · World Bank (annual) fallback for the rest · auto-updated on the 5th of each month via GitHub Actions · date shown per metric</span>
       </div>
       <div class="meth-item">
         <span class="meth-label">P/E Ratio</span>
-        <span class="meth-value">Manual update from etf.com · update pe_data.json monthly · date shown per metric</span>
+        <span class="meth-value">Manual update in hulbert_data.json · date shown per metric</span>
       </div>
       <div class="meth-item">
         <span class="meth-label">Ranking logic</span>
@@ -692,7 +699,7 @@
 </main>
 
 <footer>
-  Global Macro Equity Screen · Data: World Bank, Financial Modeling Prep, Yahoo Finance<br>
+  Global Macro Equity Screen · Data: OECD, World Bank, manual P/E<br>
   Hulbert Composite Score methodology: Deluard / Ned Davis Research · Not investment advice
 </footer>
 
@@ -753,14 +760,6 @@ const QUARTILES = [
   { label: 'Q4 — Best', cls: 'q4', min: -Infinity, max: 23.5, ret: '~16%', retCls: 'return-q4' },
 ];
 
-function getQuartile(score) {
-  if (score === null || isNaN(score)) return null;
-  return QUARTILES.find(q => score > q.min || (score >= q.min && score < q.max) ||
-    (score < q.max && score >= q.min)) ||
-    QUARTILES.find(q => score >= q.min && score < q.max) ||
-    (score >= 30 ? QUARTILES[0] : score >= 26.5 ? QUARTILES[1] : score >= 23.5 ? QUARTILES[2] : QUARTILES[3]);
-}
-
 function classifyScore(score) {
   if (score === null || score === undefined || isNaN(score)) return null;
   if (score > 30) return QUARTILES[0];
@@ -776,50 +775,11 @@ let data = COUNTRIES.map(c => ({
 
 let sortKey = 'score';
 let sortDir = 1;
-let fmpKey = localStorage.getItem('fmp_key') || '';
-
-function saveFmpKey() {
-  const val = document.getElementById('fmp-key-input').value.trim();
-  if (!val) return;
-  fmpKey = val;
-  localStorage.setItem('fmp_key', val);
-  loadAllData();
-}
 
 function fmt(val, decimals = 1) {
   if (val === null || val === undefined || isNaN(val)) return '—';
   return Number(val).toFixed(decimals);
 }
-
-async function fetchWorldBankIndicator(indicator, countryCodes) {
-  const codes = countryCodes.join(';');
-  const url = `https://api.worldbank.org/v2/country/${codes}/indicator/${indicator}?format=json&mrv=1&per_page=100`;
-  try {
-    const res = await fetch(url);
-    const json = await res.json();
-    const result = {};
-    if (json[1]) {
-      json[1].forEach(item => {
-        if (item.value !== null) {
-          result[item.countryiso3code] = item.value;
-        }
-      });
-    }
-    return result;
-  } catch (e) {
-    console.error('World Bank fetch error:', indicator, e);
-    return {};
-  }
-}
-
-const ISO3_MAP = {
-  'US':'USA','CA':'CAN','DE':'DEU','FR':'FRA','GB':'GBR','CH':'CHE','NL':'NLD','AT':'AUT',
-  'IT':'ITA','ES':'ESP','GR':'GRC','IE':'IRL','PL':'POL','CZ':'CZE','TR':'TUR',
-  'JP':'JPN','AU':'AUS','NZ':'NZL','SG':'SGP','HK':'HKG','CN':'CHN','KR':'KOR',
-  'TW':'TWN','IN':'IND','ID':'IDN','MY':'MYS','TH':'THA','PH':'PHL','VN':'VNM','PK':'PAK',
-  'BR':'BRA','MX':'MEX','CL':'CHL','CO':'COL','PE':'PER','AR':'ARG',
-  'IL':'ISR','SA':'SAU','AE':'ARE','QA':'QAT','KW':'KWT','ZA':'ZAF','EG':'EGY'
-};
 
 async function fetchHulbertData() {
   const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
@@ -827,7 +787,6 @@ async function fetchHulbertData() {
   if (!res.ok) throw new Error('hulbert_data.json not found');
   const json = await res.json();
 
-  // Update global updated date
   if (json._updated) {
     document.getElementById('last-update').textContent = 'Data: ' + json._updated;
   }
@@ -838,39 +797,16 @@ async function fetchHulbertData() {
 
     d.inflation        = entry.cpi   ?? null;
     d.inflationDate    = entry.cpi_date ?? null;
-    d.inflationSrc     = entry.cpi   !== null ? 'WB' : null;
+    d.inflationSrc     = entry.cpi_source ?? null;
 
     d.unemployment     = entry.unemp ?? null;
     d.unemploymentDate = entry.unemp_date ?? null;
-    d.unemploymentSrc  = entry.unemp !== null ? 'WB' : null;
+    d.unemploymentSrc  = entry.unemp_source ?? null;
 
     d.pe               = entry.pe    ?? null;
     d.peDate           = entry.pe_date ?? null;
-    d.peSrc            = entry.pe    !== null ? 'JSON' : null;
+    d.peSrc            = entry.pe    !== null && entry.pe !== undefined ? 'Manual' : null;
   });
-}
-
-async function fetchPEData() {
-  try {
-    const base = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-    const res = await fetch(base + 'pe_data.json?t=' + Date.now());
-    if (!res.ok) throw new Error('pe_data.json not found');
-    const json = await res.json();
-    const updated = json._updated ?? '';
-    data.forEach(d => {
-      const pe = json[d.etf] ?? null;
-      if (pe !== null && !isNaN(pe) && pe > 0) {
-        d.pe = pe;
-        d.peSrc = 'JSON';
-      }
-    });
-    if (updated) {
-      const el = document.getElementById('pe-updated');
-      if (el) el.textContent = 'P/E data: ' + updated;
-    }
-  } catch(e) {
-    console.warn('Could not load pe_data.json:', e.message);
-  }
 }
 
 function computeScores() {
@@ -878,9 +814,6 @@ function computeScores() {
     const vals = [d.inflation, d.unemployment, d.pe];
     if (vals.every(v => v !== null && !isNaN(v))) {
       d.score = d.inflation + d.unemployment + d.pe;
-    } else if (vals.some(v => v !== null && !isNaN(v))) {
-      const sum = vals.reduce((a, v) => v !== null && !isNaN(v) ? a + v : a, 0);
-      d.score = null;
     } else {
       d.score = null;
     }
@@ -900,6 +833,20 @@ function sortBy(key) {
   else { sortKey = key; sortDir = 1; }
   document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
   renderTable();
+}
+
+// Devolve a classe CSS certa consoante a fonte do dado
+function sourceClass(src) {
+  if (src === 'OECD') return 'source-live';       // verde — mensal, corrente
+  if (src === 'WorldBank') return 'source-wb';     // azul — anual, com desfasamento
+  if (src === 'Manual') return 'source-live';      // verde — P/E actualizado à mão
+  return 'source-na';
+}
+
+function sourceLabel(src) {
+  if (src === 'WorldBank') return 'WB';
+  if (!src) return '—';
+  return src; // 'OECD' ou 'Manual'
 }
 
 function renderTable() {
@@ -936,11 +883,10 @@ function renderTable() {
   tbody.innerHTML = filtered.map((d, i) => {
     const q = d.score !== null ? classifyScore(d.score) : null;
     const scoreDisplay = d.score !== null ? fmt(d.score, 1) : '—';
-    const scoreCls = q ? `score-cell` : 'score-cell';
 
-    const inflSrc = d.inflationSrc ? `<span class="data-source source-${d.inflationSrc === 'WB' ? 'wb' : 'live'}">${d.inflationSrc}</span>` : '<span class="data-source source-na">—</span>';
-    const unempSrc = d.unemploymentSrc ? `<span class="data-source source-${d.unemploymentSrc === 'WB' ? 'wb' : 'live'}">${d.unemploymentSrc}</span>` : '<span class="data-source source-na">—</span>';
-    const peSrc = d.peSrc ? `<span class="data-source source-live">${d.peSrc}</span>` : '<span class="data-source source-na">—</span>';
+    const inflBadge  = `<span class="data-source ${sourceClass(d.inflationSrc)}">C: ${sourceLabel(d.inflationSrc)}</span>`;
+    const unempBadge = `<span class="data-source ${sourceClass(d.unemploymentSrc)}">U: ${sourceLabel(d.unemploymentSrc)}</span>`;
+    const peBadge     = `<span class="data-source ${sourceClass(d.peSrc)}">P: ${sourceLabel(d.peSrc)}</span>`;
 
     const quartileBadge = q
       ? `<span class="quartile-badge ${q.cls}">${q.label}</span>`
@@ -950,9 +896,9 @@ function renderTable() {
       ? `<span class="return-cell ${q.retCls}">${q.ret}</span>`
       : `<span class="return-cell return-na">—</span>`;
 
-    const cpiDateStr   = d.inflationDate   ? `<span class="data-date">${d.inflationDate}</span>`   : '';
+    const cpiDateStr   = d.inflationDate    ? `<span class="data-date">${d.inflationDate}</span>`    : '';
     const unempDateStr = d.unemploymentDate ? `<span class="data-date">${d.unemploymentDate}</span>` : '';
-    const peDateStr    = d.peDate           ? `<span class="data-date">${d.peDate}</span>`           : '';
+    const peDateStr    = d.peDate           ? `<span class="data-date">${d.peDate}</span>`            : '';
 
     return `<tr>
       <td class="rank-num">${i + 1}</td>
@@ -972,9 +918,16 @@ function renderTable() {
       <td class="num-cell ${d.pe === null ? 'loading' : ''}">
         ${fmt(d.pe, 1)}${peDateStr}
       </td>
-      <td class="${scoreCls}" style="color:${q ? `var(--${q.cls.replace('q','q')}-badge)` : 'var(--text3)'}">${scoreDisplay}</td>
+      <td class="score-cell" style="color:${q ? `var(--${q.cls}-badge)` : 'var(--text3)'}">${scoreDisplay}</td>
       <td>${quartileBadge}</td>
       <td style="text-align:right">${returnCell}</td>
+      <td>
+        <div class="data-cell">
+          ${inflBadge}
+          ${unempBadge}
+          ${peBadge}
+        </div>
+      </td>
     </tr>`;
   }).join('');
 
@@ -1015,7 +968,6 @@ async function loadAllData() {
 
 function init() {
   document.getElementById('setup-banner').classList.add('hidden');
-  // Data loaded from hulbert_data.json — no API keys required
 
   const cached = localStorage.getItem('macro_cache');
   if (cached) {
