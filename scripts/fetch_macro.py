@@ -22,6 +22,7 @@ import os
 import sys
 import urllib.request
 import urllib.error
+import time
 from datetime import datetime
 
 # ── Universo de 43 países ────────────────────────────────────────────────────
@@ -82,11 +83,28 @@ REPO_JSON_PATH = os.environ.get("HULBERT_JSON_PATH", "hulbert_data.json")
 
 # ── OECD ──────────────────────────────────────────────────────────────────────
 
-def fetch_oecd_csv(url):
-    req = urllib.request.Request(url, headers={"Accept": "application/vnd.sdmx.data+csv"})
-    with urllib.request.urlopen(req, timeout=35) as resp:
-        text = resp.read().decode("utf-8")
-    return list(csv.DictReader(io.StringIO(text)))
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/vnd.sdmx.data+csv",
+}
+
+
+def fetch_oecd_csv(url, attempts=2):
+    last_err = None
+    for i in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                text = resp.read().decode("utf-8")
+            return list(csv.DictReader(io.StringIO(text)))
+        except Exception as e:
+            last_err = e
+            if i < attempts - 1:
+                time.sleep(3)
+    raise last_err
 
 
 def get_oecd_cpi():
@@ -165,32 +183,34 @@ def _most_recent(rows, area_col="REF_AREA", time_col="TIME_PERIOD", value_col="O
 # Um único pedido para TODOS os países de uma vez (em vez de um pedido por país,
 # que era lento e podia demorar minutos com ~40 chamadas sequenciais).
 
-def fetch_wb_bulk(wb_codes, indicator):
+def fetch_wb_bulk(wb_codes, indicator, attempts=2):
     """Devolve {wb_code: (valor, data)} para o indicador dado, num único pedido HTTP."""
     codes = ";".join(wb_codes)
     url = f"{WB_BASE}/{codes}/indicator/{indicator}?format=json&per_page=1000&mrnev=1"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.load(resp)
-        result = {}
-        if len(data) < 2 or not data[1]:
+    last_err = None
+    for i in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": HEADERS["User-Agent"]})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.load(resp)
+            result = {}
+            if len(data) < 2 or not data[1]:
+                return result
+            for entry in data[1]:
+                code = entry.get("country", {}).get("id") or entry.get("countryiso3code")
+                val = entry.get("value")
+                if val is None:
+                    continue
+                date_str = str(entry["date"])
+                if code not in result or date_str > result[code][1]:
+                    result[code] = (round(float(val), 2), date_str)
             return result
-        for entry in data[1]:
-            # usar o código ISO alpha-2 (country.id) para bater certo com o "wb" da lista COUNTRIES
-            code = entry.get("country", {}).get("id") or entry.get("countryiso3code")
-            val = entry.get("value")
-            if val is None:
-                continue
-            # mrnev já devolve o valor mais recente por país; se vier mais que
-            # uma entrada por país, mantemos a de data mais recente
-            date_str = str(entry["date"])
-            if code not in result or date_str > result[code][1]:
-                result[code] = (round(float(val), 2), date_str)
-        return result
-    except Exception as e:
-        print(f"  [World Bank {indicator}] falhou: {e}")
-        return {}
+        except Exception as e:
+            last_err = e
+            if i < attempts - 1:
+                time.sleep(3)
+    print(f"  [World Bank {indicator}] falhou: {last_err}")
+    return {}
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
