@@ -1,208 +1,270 @@
 #!/usr/bin/env python3
 """
-Hulbert Macro Screen — Data Fetcher
-Fetches CPI and Unemployment from World Bank API (free, no key)
-Merges with existing PE data from pe_data.json
-Outputs hulbert_data.json with per-metric dates
+Hulbert Macro Screen — Data Fetcher v2
+Fetches CPI and Unemployment for 43 country ETFs.
+
+Estratégia híbrida:
+  1. OECD SDMX API (mensal, corrente) para os 23 países-membros da OECD
+  2. World Bank API (anual, com desfasamento) como reserva para os
+     restantes 20 países e para qualquer falha pontual da OECD
+
+P/E: mantém-se manual — o valor existente no hulbert_data.json é
+preservado (este script nunca o sobrescreve).
+
+Corre via GitHub Actions no dia 5 de cada mês (ver
+.github/workflows/update_macro_data.yml).
 """
 
 import json
-import urllib.request
-import urllib.error
+import csv
+import io
 import os
 import sys
+import urllib.request
+import urllib.error
 from datetime import datetime
 
-# ── Country universe ──────────────────────────────────────────────────────────
+# ── Universo de 43 países ────────────────────────────────────────────────────
+# wb   = código World Bank (ISO alpha-2)
+# oecd = código OECD SDMX (ISO alpha-3), ou None se não for membro OECD
 COUNTRIES = [
-    {"etf": "SPY",  "country": "United States",   "region": "North America",     "wb": "US"},
-    {"etf": "EWC",  "country": "Canada",           "region": "North America",     "wb": "CA"},
-    {"etf": "EWG",  "country": "Germany",          "region": "Core Europe",       "wb": "DE"},
-    {"etf": "EWQ",  "country": "France",           "region": "Core Europe",       "wb": "FR"},
-    {"etf": "EWU",  "country": "United Kingdom",   "region": "Core Europe",       "wb": "GB"},
-    {"etf": "EWL",  "country": "Switzerland",      "region": "Core Europe",       "wb": "CH"},
-    {"etf": "EWN",  "country": "Netherlands",      "region": "Core Europe",       "wb": "NL"},
-    {"etf": "EWO",  "country": "Austria",          "region": "Core Europe",       "wb": "AT"},
-    {"etf": "EWI",  "country": "Italy",            "region": "Peripheral Europe", "wb": "IT"},
-    {"etf": "EWP",  "country": "Spain",            "region": "Peripheral Europe", "wb": "ES"},
-    {"etf": "GREK", "country": "Greece",           "region": "Peripheral Europe", "wb": "GR"},
-    {"etf": "EIRL", "country": "Ireland",          "region": "Peripheral Europe", "wb": "IE"},
-    {"etf": "EPOL", "country": "Poland",           "region": "Emerging Europe",   "wb": "PL"},
-    {"etf": "EWCZ", "country": "Czech Republic",   "region": "Emerging Europe",   "wb": "CZ"},
-    {"etf": "TUR",  "country": "Turkey",           "region": "Emerging Europe",   "wb": "TR"},
-    {"etf": "EWJ",  "country": "Japan",            "region": "Developed Asia",    "wb": "JP"},
-    {"etf": "EWA",  "country": "Australia",        "region": "Developed Asia",    "wb": "AU"},
-    {"etf": "ENZL", "country": "New Zealand",      "region": "Developed Asia",    "wb": "NZ"},
-    {"etf": "EWS",  "country": "Singapore",        "region": "Developed Asia",    "wb": "SG"},
-    {"etf": "EWH",  "country": "Hong Kong",        "region": "Developed Asia",    "wb": "HK"},
-    {"etf": "MCHI", "country": "China",            "region": "Emerging Asia",     "wb": "CN"},
-    {"etf": "EWY",  "country": "South Korea",      "region": "Emerging Asia",     "wb": "KR"},
-    {"etf": "EWT",  "country": "Taiwan",           "region": "Emerging Asia",     "wb": "TW"},
-    {"etf": "INDA", "country": "India",            "region": "Emerging Asia",     "wb": "IN"},
-    {"etf": "EIDO", "country": "Indonesia",        "region": "Emerging Asia",     "wb": "ID"},
-    {"etf": "EWM",  "country": "Malaysia",         "region": "Emerging Asia",     "wb": "MY"},
-    {"etf": "THD",  "country": "Thailand",         "region": "Emerging Asia",     "wb": "TH"},
-    {"etf": "EPHE", "country": "Philippines",      "region": "Emerging Asia",     "wb": "PH"},
-    {"etf": "VNM",  "country": "Vietnam",          "region": "Emerging Asia",     "wb": "VN"},
-    {"etf": "PAK",  "country": "Pakistan",         "region": "Emerging Asia",     "wb": "PK"},
-    {"etf": "EWZ",  "country": "Brazil",           "region": "Latin America",     "wb": "BR"},
-    {"etf": "EWW",  "country": "Mexico",           "region": "Latin America",     "wb": "MX"},
-    {"etf": "ECH",  "country": "Chile",            "region": "Latin America",     "wb": "CL"},
-    {"etf": "GXG",  "country": "Colombia",         "region": "Latin America",     "wb": "CO"},
-    {"etf": "EPU",  "country": "Peru",             "region": "Latin America",     "wb": "PE"},
-    {"etf": "ARGT", "country": "Argentina",        "region": "Latin America",     "wb": "AR"},
-    {"etf": "EIS",  "country": "Israel",           "region": "Middle East",       "wb": "IL"},
-    {"etf": "KSA",  "country": "Saudi Arabia",     "region": "Middle East",       "wb": "SA"},
-    {"etf": "UAE",  "country": "UAE",              "region": "Middle East",       "wb": "AE"},
-    {"etf": "QAT",  "country": "Qatar",            "region": "Middle East",       "wb": "QA"},
-    {"etf": "KWT",  "country": "Kuwait",           "region": "Middle East",       "wb": "KW"},
-    {"etf": "EZA",  "country": "South Africa",     "region": "Africa",            "wb": "ZA"},
-    {"etf": "EGPT", "country": "Egypt",            "region": "Africa",            "wb": "EG"},
+    {"etf": "SPY",  "country": "United States",   "region": "North America",  "wb": "US", "oecd": "USA"},
+    {"etf": "EWC",  "country": "Canada",           "region": "North America",  "wb": "CA", "oecd": "CAN"},
+    {"etf": "EWG",  "country": "Germany",          "region": "Europe",         "wb": "DE", "oecd": "DEU"},
+    {"etf": "EWQ",  "country": "France",           "region": "Europe",         "wb": "FR", "oecd": "FRA"},
+    {"etf": "EWU",  "country": "United Kingdom",   "region": "Europe",         "wb": "GB", "oecd": "GBR"},
+    {"etf": "EWL",  "country": "Switzerland",      "region": "Europe",         "wb": "CH", "oecd": "CHE"},
+    {"etf": "EWN",  "country": "Netherlands",      "region": "Europe",         "wb": "NL", "oecd": "NLD"},
+    {"etf": "EWO",  "country": "Austria",          "region": "Europe",         "wb": "AT", "oecd": "AUT"},
+    {"etf": "EWI",  "country": "Italy",            "region": "Europe",         "wb": "IT", "oecd": "ITA"},
+    {"etf": "EWP",  "country": "Spain",            "region": "Europe",         "wb": "ES", "oecd": "ESP"},
+    {"etf": "GREK", "country": "Greece",           "region": "Europe",         "wb": "GR", "oecd": "GRC"},
+    {"etf": "EIRL", "country": "Ireland",          "region": "Europe",         "wb": "IE", "oecd": "IRL"},
+    {"etf": "EPOL", "country": "Poland",           "region": "Europe",         "wb": "PL", "oecd": "POL"},
+    {"etf": "EWCZ", "country": "Czech Republic",   "region": "Europe",         "wb": "CZ", "oecd": "CZE"},
+    {"etf": "TUR",  "country": "Turkey",           "region": "Europe",         "wb": "TR", "oecd": "TUR"},
+    {"etf": "EWJ",  "country": "Japan",            "region": "Asia",           "wb": "JP", "oecd": "JPN"},
+    {"etf": "EWA",  "country": "Australia",        "region": "Asia",           "wb": "AU", "oecd": "AUS"},
+    {"etf": "ENZL", "country": "New Zealand",      "region": "Asia",           "wb": "NZ", "oecd": "NZL"},
+    {"etf": "EWS",  "country": "Singapore",        "region": "Asia",           "wb": "SG", "oecd": None},
+    {"etf": "EWH",  "country": "Hong Kong",        "region": "Asia",           "wb": "HK", "oecd": None},
+    {"etf": "MCHI", "country": "China",            "region": "Asia",           "wb": "CN", "oecd": None},
+    {"etf": "EWY",  "country": "South Korea",      "region": "Asia",           "wb": "KR", "oecd": "KOR"},
+    {"etf": "EWT",  "country": "Taiwan",           "region": "Asia",           "wb": "TW", "oecd": None},
+    {"etf": "INDA", "country": "India",            "region": "Asia",           "wb": "IN", "oecd": None},
+    {"etf": "EIDO", "country": "Indonesia",        "region": "Asia",           "wb": "ID", "oecd": None},
+    {"etf": "EWM",  "country": "Malaysia",         "region": "Asia",           "wb": "MY", "oecd": None},
+    {"etf": "THD",  "country": "Thailand",         "region": "Asia",           "wb": "TH", "oecd": None},
+    {"etf": "EPHE", "country": "Philippines",      "region": "Asia",           "wb": "PH", "oecd": None},
+    {"etf": "VNM",  "country": "Vietnam",          "region": "Asia",           "wb": "VN", "oecd": None},
+    {"etf": "PAK",  "country": "Pakistan",         "region": "Asia",           "wb": "PK", "oecd": None},
+    {"etf": "EWZ",  "country": "Brazil",           "region": "Latin America",  "wb": "BR", "oecd": None},
+    {"etf": "EWW",  "country": "Mexico",           "region": "Latin America",  "wb": "MX", "oecd": "MEX"},
+    {"etf": "ECH",  "country": "Chile",            "region": "Latin America",  "wb": "CL", "oecd": "CHL"},
+    {"etf": "GXG",  "country": "Colombia",         "region": "Latin America",  "wb": "CO", "oecd": "COL"},
+    {"etf": "EPU",  "country": "Peru",             "region": "Latin America",  "wb": "PE", "oecd": None},
+    {"etf": "ARGT", "country": "Argentina",        "region": "Latin America",  "wb": "AR", "oecd": None},
+    {"etf": "EIS",  "country": "Israel",           "region": "Middle East",    "wb": "IL", "oecd": "ISR"},
+    {"etf": "KSA",  "country": "Saudi Arabia",     "region": "Middle East",    "wb": "SA", "oecd": None},
+    {"etf": "UAE",  "country": "UAE",              "region": "Middle East",    "wb": "AE", "oecd": None},
+    {"etf": "QAT",  "country": "Qatar",            "region": "Middle East",    "wb": "QA", "oecd": None},
+    {"etf": "KWT",  "country": "Kuwait",           "region": "Middle East",    "wb": "KW", "oecd": None},
+    {"etf": "EZA",  "country": "South Africa",     "region": "Africa",         "wb": "ZA", "oecd": None},
+    {"etf": "EGPT", "country": "Egypt",            "region": "Africa",         "wb": "EG", "oecd": None},
 ]
 
-def fetch_url(url):
-    """Fetch URL with timeout and error handling."""
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "HulbertMacroScreen/1.0"})
-        with urllib.request.urlopen(req, timeout=30) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except Exception as e:
-        print(f"  Error fetching {url[:80]}...: {e}", file=sys.stderr)
-        return None
+TODAY = datetime.now().strftime("%Y-%m-%d")
+OECD_BASE = "https://sdmx.oecd.org/public/rest/data"
+WB_BASE = "https://api.worldbank.org/v2/country"
 
-def fetch_worldbank(indicator, country_codes):
-    """
-    Fetch most recent value for an indicator from World Bank API.
-    Returns dict: {iso2: {"value": float, "date": "YYYY"}}
-    """
-    codes = ";".join(country_codes)
-    url = (f"https://api.worldbank.org/v2/country/{codes}/indicator/{indicator}"
-           f"?format=json&mrv=5&per_page=500")
-    
-    data = fetch_url(url)
-    if not data or len(data) < 2 or not data[1]:
+REPO_JSON_PATH = os.environ.get("HULBERT_JSON_PATH", "hulbert_data.json")
+
+
+# ── OECD ──────────────────────────────────────────────────────────────────────
+
+def fetch_oecd_csv(url):
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.sdmx.data+csv"})
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        text = resp.read().decode("utf-8")
+    return list(csv.DictReader(io.StringIO(text)))
+
+
+def get_oecd_cpi():
+    """Devolve {oecd_code: (valor, data)} — CPI homólogo total, mensal."""
+    url = (
+        f"{OECD_BASE}/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/all"
+        f"?startPeriod=2025-01&format=csvfilewithlabels"
+    )
+    try:
+        rows = fetch_oecd_csv(url)
+    except Exception as e:
+        print(f"  [OECD CPI] falhou: {e}")
         return {}
-    
-    result = {}
-    for item in data[1]:
-        if item.get("value") is None:
-            continue
-        # Use countryiso3code if available, fallback to country id
-        iso2 = item.get("country", {}).get("id", "")
-        if not iso2:
-            continue
-        # Keep most recent non-null value
-        if iso2 not in result:
-            result[iso2] = {
-                "value": round(float(item["value"]), 2),
-                "date": item.get("date", "")
-            }
+
+    filtered = [
+        r for r in rows
+        if r.get("FREQ") == "M"
+        and r.get("MEASURE") == "CPI"
+        and r.get("UNIT_MEASURE") == "PA"
+        and r.get("TRANSFORMATION") == "GY"
+        and r.get("EXPENDITURE") == "_T"
+    ]
+    return _most_recent(filtered)
+
+
+def get_oecd_unemployment():
+    """Devolve {oecd_code: (valor, data)} — taxa de desemprego, 15+, ajustada, mensal."""
+    url = (
+        f"{OECD_BASE}/OECD.SDD.TPS,DSD_LFS@DF_IALFS_UNE_M,1.0/all"
+        f"?startPeriod=2025-01&format=csvfilewithlabels"
+    )
+    try:
+        rows = fetch_oecd_csv(url)
+    except Exception as e:
+        print(f"  [OECD Unemployment] falhou: {e}")
+        return {}
+
+    filtered = [
+        r for r in rows
+        if r.get("FREQ") == "M"
+        and r.get("SEX") == "_T"
+        and r.get("AGE") == "Y_GE15"
+        and r.get("ADJUSTMENT") == "Y"
+    ]
+    result = _most_recent(filtered)
+    if not result:
+        # reserva: sem ajuste sazonal
+        filtered = [
+            r for r in rows
+            if r.get("FREQ") == "M"
+            and r.get("SEX") == "_T"
+            and r.get("AGE") == "Y_GE15"
+            and r.get("ADJUSTMENT") == "N"
+        ]
+        result = _most_recent(filtered)
     return result
 
-def load_pe_data():
-    """Load PE data from pe_data.json."""
-    pe_file = os.path.join(os.path.dirname(__file__), "..", "pe_data.json")
-    try:
-        with open(pe_file, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Warning: Could not load pe_data.json: {e}", file=sys.stderr)
-        return {}
 
-def load_existing_data():
-    """Load existing hulbert_data.json to use as fallback."""
-    data_file = os.path.join(os.path.dirname(__file__), "..", "hulbert_data.json")
+def _most_recent(rows, area_col="REF_AREA", time_col="TIME_PERIOD", value_col="OBS_VALUE"):
+    best = {}
+    for row in rows:
+        area = row.get(area_col)
+        t = row.get(time_col)
+        v = row.get(value_col)
+        if not area or not t or v in (None, ""):
+            continue
+        if area not in best or t > best[area][1]:
+            try:
+                best[area] = (round(float(v), 2), t)
+            except ValueError:
+                continue
+    return best
+
+
+# ── World Bank (reserva) ──────────────────────────────────────────────────────
+
+def fetch_wb_indicator(wb_code, indicator):
+    url = f"{WB_BASE}/{wb_code}/indicator/{indicator}?format=json&per_page=20&mrnev=1"
     try:
-        with open(data_file, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.load(resp)
+        if len(data) < 2 or not data[1]:
+            return None
+        for entry in data[1]:
+            if entry.get("value") is not None:
+                return (round(float(entry["value"]), 2), str(entry["date"]))
+    except Exception as e:
+        print(f"  [World Bank {indicator} {wb_code}] falhou: {e}")
+    return None
+
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+
+def load_existing():
+    """Carrega o hulbert_data.json actual do repo, para preservar os P/E."""
+    if os.path.exists(REPO_JSON_PATH):
+        try:
+            with open(REPO_JSON_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Aviso: não consegui ler {REPO_JSON_PATH} existente: {e}")
+    return {}
+
 
 def main():
-    print("Fetching macro data from World Bank API...")
-    
-    wb_codes = [c["wb"] for c in COUNTRIES]
-    
-    # ── Fetch CPI (inflation) ─────────────────────────────────────────────────
-    print("  → CPI (inflation) FP.CPI.TOTL.ZG")
-    cpi_data = fetch_worldbank("FP.CPI.TOTL.ZG", wb_codes)
-    print(f"     Got {len(cpi_data)} countries")
+    print(f"Hulbert Macro Screen — fetch_macro.py — {TODAY}\n")
+    existing = load_existing()
 
-    # ── Fetch Unemployment ────────────────────────────────────────────────────
-    print("  → Unemployment SL.UEM.TOTL.ZS")
-    unemp_data = fetch_worldbank("SL.UEM.TOTL.ZS", wb_codes)
-    print(f"     Got {len(unemp_data)} countries")
+    print("A obter CPI da OECD (23 países-membros)...")
+    oecd_cpi = get_oecd_cpi()
+    print(f"  {len(oecd_cpi)} países com CPI da OECD\n")
 
-    # ── Load PE data ──────────────────────────────────────────────────────────
-    pe_data = load_pe_data()
-    pe_updated = pe_data.get("_updated", "unknown")
-    print(f"  → PE data loaded (updated: {pe_updated})")
+    print("A obter Desemprego da OECD (23 países-membros)...")
+    oecd_unemp = get_oecd_unemployment()
+    print(f"  {len(oecd_unemp)} países com desemprego da OECD\n")
 
-    # ── Load existing data for fallback ───────────────────────────────────────
-    existing = load_existing_data()
-
-    # ── Assemble output ───────────────────────────────────────────────────────
-    today = datetime.utcnow().strftime("%Y-%m-%d")
     output = {
-        "_updated": today,
+        "_updated": TODAY,
         "_sources": {
-            "cpi": "World Bank API — FP.CPI.TOTL.ZG (annual CPI %)",
-            "unemployment": "World Bank API — SL.UEM.TOTL.ZS (% of total labour force)",
-            "pe": f"Manual update from etf.com — last updated {pe_updated}",
-            "note": "Each metric shows its own reference date. World Bank data may lag 1-2 years for some countries."
-        }
+            "cpi": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
+            "unemployment": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
+            "pe": "Manual — preservado do ficheiro anterior",
+            "note": "date shown per metric",
+        },
     }
 
     for c in COUNTRIES:
-        etf = c["etf"]
-        wb  = c["wb"]
+        etf, wb_code, oecd_code = c["etf"], c["wb"], c["oecd"]
+        print(f"→ {c['country']} ({etf})")
 
-        cpi_entry   = cpi_data.get(wb)
-        unemp_entry = unemp_data.get(wb)
-        pe_val      = pe_data.get(etf)
+        # --- CPI ---
+        cpi_val, cpi_date, cpi_src = None, None, None
+        if oecd_code and oecd_code in oecd_cpi:
+            cpi_val, cpi_date = oecd_cpi[oecd_code]
+            cpi_src = "OECD"
+        if cpi_val is None:
+            wb_result = fetch_wb_indicator(wb_code, "FP.CPI.TOTL.ZG")
+            if wb_result:
+                cpi_val, cpi_date = wb_result
+                cpi_src = "WorldBank"
+        print(f"    CPI: {cpi_val} ({cpi_date}, {cpi_src})")
 
-        # Fallback to existing data if API returned nothing
-        existing_etf = existing.get(etf, {})
-        
-        if cpi_entry is None and existing_etf.get("cpi") is not None:
-            cpi_entry = {
-                "value": existing_etf["cpi"],
-                "date": existing_etf.get("cpi_date", "cached")
-            }
-            print(f"  ⚠ {etf} CPI: using cached value ({cpi_entry['value']})")
+        # --- Unemployment ---
+        unemp_val, unemp_date, unemp_src = None, None, None
+        if oecd_code and oecd_code in oecd_unemp:
+            unemp_val, unemp_date = oecd_unemp[oecd_code]
+            unemp_src = "OECD"
+        if unemp_val is None:
+            wb_result = fetch_wb_indicator(wb_code, "SL.UEM.TOTL.ZS")
+            if wb_result:
+                unemp_val, unemp_date = wb_result
+                unemp_src = "WorldBank"
+        print(f"    Unemployment: {unemp_val} ({unemp_date}, {unemp_src})")
 
-        if unemp_entry is None and existing_etf.get("unemp") is not None:
-            unemp_entry = {
-                "value": existing_etf["unemp"],
-                "date": existing_etf.get("unemp_date", "cached")
-            }
-            print(f"  ⚠ {etf} Unemp: using cached value ({unemp_entry['value']})")
+        # --- P/E: preservar o que já existe, nunca sobrescrever ---
+        prev = existing.get(etf, {})
+        pe_val = prev.get("pe")
+        pe_date = prev.get("pe_date")
 
         output[etf] = {
-            "country":    c["country"],
-            "region":     c["region"],
-            "cpi":        cpi_entry["value"]  if cpi_entry   else None,
-            "cpi_date":   cpi_entry["date"]   if cpi_entry   else None,
-            "unemp":      unemp_entry["value"] if unemp_entry else None,
-            "unemp_date": unemp_entry["date"]  if unemp_entry else None,
-            "pe":         float(pe_val) if pe_val not in (None, "", "_updated", "_source") else None,
-            "pe_date":    pe_updated,
+            "country": c["country"],
+            "region": c["region"],
+            "cpi": cpi_val,
+            "cpi_date": cpi_date,
+            "cpi_source": cpi_src,
+            "unemp": unemp_val,
+            "unemp_date": unemp_date,
+            "unemp_source": unemp_src,
+            "pe": pe_val,
+            "pe_date": pe_date,
         }
 
-    # ── Write output ──────────────────────────────────────────────────────────
-    out_file = os.path.join(os.path.dirname(__file__), "..", "hulbert_data.json")
-    with open(out_file, "w", encoding="utf-8") as f:
+    with open(REPO_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
-    
-    print(f"\n✅ hulbert_data.json written — {len(COUNTRIES)} countries")
-    
-    # ── Summary ───────────────────────────────────────────────────────────────
-    has_cpi   = sum(1 for c in COUNTRIES if output[c["etf"]]["cpi"]   is not None)
-    has_unemp = sum(1 for c in COUNTRIES if output[c["etf"]]["unemp"] is not None)
-    has_pe    = sum(1 for c in COUNTRIES if output[c["etf"]]["pe"]    is not None)
-    print(f"   CPI:          {has_cpi}/{len(COUNTRIES)} countries")
-    print(f"   Unemployment: {has_unemp}/{len(COUNTRIES)} countries")
-    print(f"   P/E:          {has_pe}/{len(COUNTRIES)} countries")
+
+    print(f"\n✅ {REPO_JSON_PATH} actualizado com {len(COUNTRIES)} países.")
+
 
 if __name__ == "__main__":
     main()
