@@ -1,5 +1,5 @@
 {
-  "_updated": "2026-09-05",
+  "_updated": "2026-10-05",
   "_sources": {
     "cpi": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
     "unemployment": "OECD SDMX (mensal) para membros OECD; World Bank (anual) para os restantes",
@@ -9,40 +9,40 @@
   "SPY": {
     "country": "United States",
     "region": "North America",
-    "cpi": 3.36,
-    "cpi_date": "2026-07",
+    "cpi": 3.4,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
     "unemp": 4.1,
-    "unemp_date": "2026-07",
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 24.81,
-    "pe_date": "2026-09-04",
+    "pe": 24.1,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWC": {
     "country": "Canada",
     "region": "North America",
     "cpi": 3.03,
-    "cpi_date": "2026-07",
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
     "unemp": 6.4,
-    "unemp_date": "2026-07",
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 19.49,
-    "pe_date": "2026-09-04",
+    "pe": 18.37,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWG": {
     "country": "Germany",
     "region": "Core Europe",
-    "cpi": 2.78,
-    "cpi_date": "2026-07",
+    "cpi": 2.86,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
     "unemp": 4.0,
-    "unemp_date": "2026-07",
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 18.4,
-    "pe_date": "2026-09-04",
+    "pe": 17.18,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWQ": {
@@ -51,24 +51,24 @@
     "cpi": 0.79,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 8.3,
-    "unemp_date": "2026-07",
+    "unemp": 8.2,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 17.87,
-    "pe_date": "2026-09-04",
+    "pe": 16.2,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWU": {
     "country": "United Kingdom",
     "region": "Core Europe",
-    "cpi": 3.1,
-    "cpi_date": "2026-07",
+    "cpi": 3.3,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
     "unemp": 4.9,
-    "unemp_date": "2026-05",
+    "unemp_date": "2026-06",
     "unemp_source": "OECD",
-    "pe": 17.08,
-    "pe_date": "2026-09-04",
+    "pe": 16.16,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWL": {
@@ -80,8 +80,8 @@
     "unemp": 4.87,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 24.65,
-    "pe_date": "2026-09-04",
+    "pe": 23.05,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWN": {
@@ -91,10 +91,10 @@
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
     "unemp": 4.0,
-    "unemp_date": "2026-07",
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 18.97,
-    "pe_date": "2026-09-04",
+    "pe": 18.47,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWO": {
@@ -103,11 +103,11 @@
     "cpi": 3.76,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 6.2,
-    "unemp_date": "2026-07",
+    "unemp": 6.7,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 13.51,
-    "pe_date": "2026-09-04",
+    "pe": 12.51,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWI": {
@@ -116,11 +116,11 @@
     "cpi": 1.16,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 5.8,
-    "unemp_date": "2026-07",
+    "unemp": 6.2,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 15.25,
-    "pe_date": "2026-09-04",
+    "pe": 14.05,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWP": {
@@ -130,10 +130,10 @@
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
     "unemp": 10.0,
-    "unemp_date": "2026-07",
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 16.28,
-    "pe_date": "2026-09-04",
+    "pe": 15.07,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "GREK": {
@@ -142,11 +142,11 @@
     "cpi": 2.59,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 7.9,
-    "unemp_date": "2026-07",
+    "unemp": 7.4,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 11.82,
-    "pe_date": "2026-09-04",
+    "pe": 11.19,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EIRL": {
@@ -155,11 +155,11 @@
     "cpi": 2.76,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 5.1,
-    "unemp_date": "2026-07",
+    "unemp": 5.0,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 15.85,
-    "pe_date": "2026-09-04",
+    "pe": 14.87,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EPOL": {
@@ -169,10 +169,10 @@
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
     "unemp": 3.4,
-    "unemp_date": "2026-07",
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 13.47,
-    "pe_date": "2026-09-04",
+    "pe": 12.87,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWCZ": {
@@ -181,8 +181,8 @@
     "cpi": 2.11,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 3.3,
-    "unemp_date": "2026-07",
+    "unemp": 3.2,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
     "pe": 10.1,
     "pe_date": "2026-05-10",
@@ -194,11 +194,11 @@
     "cpi": 30.89,
     "cpi_date": "2025-12",
     "cpi_source": "OECD",
-    "unemp": 8.1,
-    "unemp_date": "2026-07",
+    "unemp": 7.8,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 13.81,
-    "pe_date": "2026-09-04",
+    "pe": 12.2,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWJ": {
@@ -207,24 +207,24 @@
     "cpi": 3.17,
     "cpi_date": "2025",
     "cpi_source": "WorldBank",
-    "unemp": 2.4,
-    "unemp_date": "2026-07",
+    "unemp": 2.5,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 19.11,
-    "pe_date": "2026-09-04",
+    "pe": 19.2,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWA": {
     "country": "Australia",
     "region": "Developed Asia",
-    "cpi": 3.45,
-    "cpi_date": "2026-07",
+    "cpi": 3.97,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
-    "unemp": 4.46,
-    "unemp_date": "2026-07",
+    "unemp": 4.65,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 21.06,
-    "pe_date": "2026-09-04",
+    "pe": 19.67,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "ENZL": {
@@ -236,8 +236,8 @@
     "unemp": 5.08,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 26.39,
-    "pe_date": "2026-09-04",
+    "pe": 24.52,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWS": {
@@ -249,8 +249,8 @@
     "unemp": 2.82,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 19.22,
-    "pe_date": "2026-09-04",
+    "pe": 18.41,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWH": {
@@ -262,8 +262,8 @@
     "unemp": 2.8,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 13.51,
-    "pe_date": "2026-09-04",
+    "pe": 12.61,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "MCHI": {
@@ -275,21 +275,21 @@
     "unemp": 4.62,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 9.37,
-    "pe_date": "2026-09-04",
+    "pe": 8.78,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWY": {
     "country": "South Korea",
     "region": "Emerging Asia",
-    "cpi": 2.79,
-    "cpi_date": "2026-07",
+    "cpi": 3.09,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
-    "unemp": 2.8,
-    "unemp_date": "2026-07",
+    "unemp": 2.7,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 10.41,
-    "pe_date": "2026-09-04",
+    "pe": 10.52,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWT": {
@@ -301,8 +301,8 @@
     "unemp": null,
     "unemp_date": null,
     "unemp_source": null,
-    "pe": 27.26,
-    "pe_date": "2026-09-04",
+    "pe": 28.65,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "INDA": {
@@ -314,8 +314,8 @@
     "unemp": 4.22,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 22.66,
-    "pe_date": "2026-09-04",
+    "pe": 21.09,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EIDO": {
@@ -327,8 +327,8 @@
     "unemp": 3.24,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 9.87,
-    "pe_date": "2026-09-04",
+    "pe": 8.97,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWM": {
@@ -340,8 +340,8 @@
     "unemp": 3.76,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 7.93,
-    "pe_date": "2026-09-04",
+    "pe": 7.62,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "THD": {
@@ -353,8 +353,8 @@
     "unemp": 0.78,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 14.51,
-    "pe_date": "2026-09-04",
+    "pe": 14.16,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EPHE": {
@@ -366,8 +366,8 @@
     "unemp": 2.23,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 7.95,
-    "pe_date": "2026-09-04",
+    "pe": 7.49,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "VNM": {
@@ -379,8 +379,8 @@
     "unemp": 1.52,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 14.26,
-    "pe_date": "2026-09-04",
+    "pe": 13.22,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "PAK": {
@@ -405,8 +405,8 @@
     "unemp": 5.97,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 10.48,
-    "pe_date": "2026-09-04",
+    "pe": 11.96,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EWW": {
@@ -415,11 +415,11 @@
     "cpi": 3.81,
     "cpi_date": "2025",
     "cpi_source": "WorldBank",
-    "unemp": 2.71,
-    "unemp_date": "2026-07",
+    "unemp": 2.75,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 12.68,
-    "pe_date": "2026-09-04",
+    "pe": 11.82,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "ECH": {
@@ -428,24 +428,24 @@
     "cpi": 4.21,
     "cpi_date": "2025",
     "cpi_source": "WorldBank",
-    "unemp": 9.28,
-    "unemp_date": "2026-06",
+    "unemp": 9.36,
+    "unemp_date": "2026-07",
     "unemp_source": "OECD",
-    "pe": 12.18,
-    "pe_date": "2026-09-04",
+    "pe": 11.23,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "GXG": {
     "country": "Colombia",
     "region": "Latin America",
-    "cpi": 6.03,
-    "cpi_date": "2026-07",
+    "cpi": 6.24,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
-    "unemp": 8.11,
-    "unemp_date": "2026-07",
+    "unemp": 9.51,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 10.68,
-    "pe_date": "2026-09-04",
+    "pe": 10.18,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EPU": {
@@ -457,8 +457,8 @@
     "unemp": 5.12,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 9.08,
-    "pe_date": "2026-09-04",
+    "pe": 8.86,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "ARGT": {
@@ -470,21 +470,21 @@
     "unemp": 7.14,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 15.48,
-    "pe_date": "2026-09-04",
+    "pe": 14.11,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EIS": {
     "country": "Israel",
     "region": "Middle East",
-    "cpi": 1.55,
-    "cpi_date": "2026-07",
+    "cpi": 1.54,
+    "cpi_date": "2026-08",
     "cpi_source": "OECD",
-    "unemp": 3.06,
-    "unemp_date": "2026-07",
+    "unemp": 2.82,
+    "unemp_date": "2026-08",
     "unemp_source": "OECD",
-    "pe": 17.89,
-    "pe_date": "2026-09-04",
+    "pe": 17.18,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "KSA": {
@@ -522,8 +522,8 @@
     "unemp": 0.13,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 11.17,
-    "pe_date": "2026-09-04",
+    "pe": 10.64,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "KWT": {
@@ -548,8 +548,8 @@
     "unemp": 32.39,
     "unemp_date": "2025",
     "unemp_source": "WorldBank",
-    "pe": 9.31,
-    "pe_date": "2026-09-04",
+    "pe": 8.14,
+    "pe_date": "2026-10-05",
     "pe_source": "worldperatio"
   },
   "EGPT": {
